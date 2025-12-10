@@ -19,7 +19,7 @@ class TemplateBootstrapLayoutVertical:
             }
         )
 
-        # map_context according to updated context values
+
         TemplateHelper.map_context(context)
 
 
