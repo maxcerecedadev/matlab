@@ -36,7 +36,7 @@ ENV DJANGO_SETTINGS_MODULE=config.settings
 ENV PORT=8000
 
 # --------- Collectstatic (usa tus settings de STATIC_ROOT) ---------
-RUN python manage.py collectstatic --noinput
+RUN RENDER=true python manage.py collectstatic --noinput
 
 # --------- Comando de arranque ---------
 CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000"]
