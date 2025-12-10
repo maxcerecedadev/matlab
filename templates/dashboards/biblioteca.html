@@ -1,0 +1,1351 @@
+{% extends 'layout/master.html' %}
+
+{% block title %}Biblioteca{% endblock %}
+
+{% block layout %}
+<!-- Layout wrapper: Start -->
+<div class="layout-wrapper layout-content-navbar">
+  <div class="layout-container">
+    <!-- Menu: Start -->
+    {% include 'layout/partials/menu/vertical/student_menu.html' %}
+    <!-- Menu: End -->
+
+    <!-- Layout page: Start -->
+    <div class="layout-page">
+      <!-- Navbar: Start -->
+      {% include 'layout/partials/navbar/navbar.html' %}
+      <!-- Navbar: End -->
+
+      <!-- Content wrapper: Start -->
+      <div class="content-wrapper">
+        <!-- Content: Start -->
+        <div class="container-xxl flex-grow-1 container-p-y">
+          <!-- Header -->
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold mb-0">Biblioteca</h2>
+            <div class="d-flex gap-2 align-items-center">
+              <select id="libraryFilter" class="form-select form-select-sm filter-select">
+                <option value="todos" selected>Operación: Todas</option>
+                <option value="suma">Operación: Suma</option>
+                <option value="resta">Operación: Resta</option>
+                <option value="multiplicacion">Operación: Multiplicación</option>
+                <option value="division">Operación: División</option>
+              </select>
+              <button class="btn btn-primary" onclick="window.history.back()">
+                <i class="ri-arrow-go-back-line me-1"></i>Volver
+              </button>
+            </div>
+          </div>
+
+          <!-- Modal de práctica -->
+          <div class="modal fade" id="practicaModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+              <div class="modal-content border-0 shadow">
+                
+                <div class="modal-header bg-light border-bottom">
+                  <h5 class="modal-title" id="practicaModalTitle">Práctica</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+
+                <div class="modal-body">
+                  <div class="mb-3 text-center">
+                    <h5 class="fw-semibold">Resuelve el ejercicio</h5>
+                    <p class="text-muted small mb-0">Lee con atención y escribe tu respuesta</p>
+                  </div>
+
+                  <!-- Panel del ejercicio -->
+                  <div class="card border shadow-sm mb-4">
+                    <div class="card-body">
+                      <div id="practicaProblemDesc" class="fw-semibold"></div>
+                    </div>
+                  </div>
+
+                  <!-- Área de respuesta -->
+                  <label class="form-label fw-semibold small text-muted">Tu respuesta</label>
+
+                  <div class="input-group input-group-lg mb-3">
+                    <input type="text" class="form-control" id="practicaRespuesta" placeholder="Escribe tu respuesta">
+                    <button class="btn btn-success" id="practicaVerificar">
+                      <i class="ri-check-line me-1"></i> Verificar
+                    </button>
+                  </div>
+
+                  <!-- Retroalimentación -->
+                  <div id="practicaFeedback" class="mt-2"></div>
+
+                  <div class="text-center mt-4">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="practicaReiniciar">
+                      Reiniciar
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+
+    <!-- Learning Options -->
+    <div class="row g-4">
+      <!-- Juegos Educativos -->
+      <div id="section-Juego" class="col-12 d-none">
+        <div class="card h-100">
+          <div class="card-header bg-label-success text-center p-3">
+            <h4 class="mb-0">
+              <i class="ri-gamepad-line me-2"></i>
+              Juegos Educativos
+            </h4>
+          </div>
+          <div class="card-body">
+            <p class="text-muted mb-4 text-center">Aprende jugando con nuestros juegos educativos.</p>
+            
+            {% for contenido in contenidos_por_tipo.Juego %}
+            <div class="card mb-3">
+              <div class="card-body">
+                <h5 class="card-title">{{ contenido.titulo }}</h5>
+                <p class="card-text text-muted">{{ contenido.descripcion|truncatechars:100 }}</p>
+              <a href="#"
+                class="btn btn-sm btn-success"
+                data-bs-toggle="modal"
+                data-bs-target="#gameModal"
+                onclick="abrirJuego('{{ contenido.titulo|escapejs }}', '{{ contenido.descripcion|escapejs }}', '{{ contenido.solucion|escapejs }}')">
+                <i class="ri-gamepad-line me-1"></i> Jugar ahora
+              </a>
+              </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-4">
+              <i class="ri-information-line fs-1 text-muted mb-2"></i>
+              <p class="text-muted mb-0">No hay juegos disponibles</p>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Practicas -->
+      <div id="section-Practica" class="col-12 d-none">
+        <div class="card h-100">
+          <div class="card-header bg-label-info text-center p-3">
+            <h4 class="mb-0">
+              <i class="ri-edit-2-line me-2"></i>
+              Prácticas
+            </h4>
+          </div>
+          <div class="card-body">
+            <p class="text-muted mb-4 text-center">Mejora tus habilidades con ejercicios prácticos.</p>
+            
+            {% for contenido in contenidos_por_tipo.Practica %}
+            <div class="card mb-3">
+              <div class="card-body d-flex align-items-center justify-content-between gap-3">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="avatar-sm rounded-circle bg-light d-flex align-items-center justify-content-center">
+                    <i class="ri-edit-2-line fs-5 text-secondary"></i>
+                  </div>
+                  <div class="text-truncate">
+                    <div class="fw-semibold text-truncate">{{ contenido.titulo }}</div>
+                    <div class="text-muted small text-truncate">{{ contenido.descripcion|truncatechars:120 }}</div>
+                  </div>
+                </div>
+                <a href="#"
+                  class="btn btn-sm btn-info"
+                  data-bs-toggle="modal"
+                  data-bs-target="#practicaModal"
+                  onclick="abrirPractica('{{ contenido.titulo|escapejs }}', '{{ contenido.descripcion|escapejs }}', '{{ contenido.solucion|escapejs }}')">
+                  <i class="ri-edit-2-line me-1"></i> Practicar
+                </a>
+              </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-4">
+              <i class="ri-information-line fs-1 text-muted mb-2"></i>
+              <p class="text-muted mb-0">No hay prácticas disponibles</p>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      
+              <!-- Contenido -->
+              <div id="section-Contenido" class="col-12">
+                <div class="card h-100">
+                  <div class="card-header bg-label-warning text-center p-3">
+                    <h4 class="mb-0">
+                      <i class="ri-file-text-line me-2"></i>
+                      Contenido
+                    </h4>
+                  </div>
+                  <div class="card-body">
+                    <p class="text-muted mb-4 text-center">Explora materiales, guías y recursos detallados.</p>
+                
+                    {% for contenido in contenidos_por_tipo.Contenido %}
+                    <div class="library-item card mb-3" data-operacion="{{ contenido.detalle_contenido.tipo|default_if_none:''|lower }}">
+                    <div class="card-body">
+                      <div class="d-flex align-items-center justify-content-between gap-3">
+
+                        <!-- Contenedor izquierdo: icono + texto -->
+                        <div class="d-flex align-items-center gap-3">
+                          <div class="avatar-sm rounded-circle bg-light d-flex align-items-center justify-content-center">
+                            <i class="ri-book-line fs-5 text-secondary"></i>
+                          </div>
+
+                          <div class="div text-truncate">
+                            <div class="fw-semibold text-truncate">
+                              {{ contenido.titulo }}
+                              {% if contenido.detalle_contenido.tipo %}
+                                <span class="badge bg-label-primary ms-2 text-uppercase">{{ contenido.detalle_contenido.tipo }}</span>
+                              {% endif %}
+                            </div>
+                            <div class="text-muted small text-truncate">
+                              {{ contenido.descripcion|default_if_none:""|truncatechars:120 }}
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- Botón alineado a la derecha -->
+                        <a href="#"
+                          class="btn btn-sm btn-primary"
+                          data-bs-toggle="modal"
+                          data-bs-target="#contentModal"
+                          data-biblioteca-id="{{ contenido.biblioteca_id }}"
+                          data-titulo="{{ contenido.titulo|escapejs }}"
+                          data-descripcion="{{ contenido.descripcion|default_if_none:''|escapejs }}"
+                          data-explicacion="{{ contenido.detalle_contenido.teoria|default_if_none:''|escapejs }}"
+                          data-pasos="{{ contenido.detalle_contenido.pasos_trucos|default_if_none:''|escapejs }}"
+                          data-ejemplo="{{ contenido.detalle_contenido.ejemplo|default_if_none:''|escapejs }}"
+                          onclick="abrirContenidoDesdeData(this)">
+                          <i class="ri-eye-line me-1"></i>
+                          Ver contenido
+                        </a>
+
+                      </div>
+                    </div>
+                  </div>
+
+                  {% empty %}
+                  <div class="text-center py-4">
+                    <i class="ri-information-line fs-1 text-muted mb-2"></i>
+                    <p class="text-muted mb-0">No hay contenidos disponibles</p>
+                  </div>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- / Content -->
+      </div>
+      <!-- / Content wrapper: End -->
+    </div>
+    <!-- / Layout page: End -->
+  </div>
+  </div>
+  <!-- / Layout wrapper: End -->
+
+<!-- Modal del juego -->
+<div class="modal fade" id="gameModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="gameModalLabel">Juego</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body" id="gameContent">
+        <p id="gameModalDesc" class="mb-3"></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Contenido -->
+<div class="modal fade" id="contentModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered position-relative">
+    <button type="button" id="contentNavPrev" class="content-nav-btn" title="Anterior">
+      <i class="ri-arrow-left-s-line"></i>
+      <span class="visually-hidden">Anterior</span>
+    </button>
+    <button type="button" id="contentNavNext" class="content-nav-btn" title="Siguiente">
+      <i class="ri-arrow-right-s-line"></i>
+      <span class="visually-hidden">Siguiente</span>
+    </button>
+    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+
+      <!-- Header -->
+      <div class="modal-header bg-primary text-white py-3">
+        <h5 class="modal-title fw-semibold" id="contentModalLabel">Contenido</h5>
+        <div class="ms-auto d-flex align-items-center gap-2">
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body p-4" style="background: #f8f9fc;">
+        <div class="row g-3">
+          <!-- Columna izquierda: Método de Pólya -->
+          <div class="col-lg-5">
+            <div class="p-3 bg-white rounded-3 shadow-sm h-100">
+              <div class="d-flex align-items-center justify-content-between mb-3">
+                <h6 class="mb-0"><i class="ri-brain-line text-primary me-2"></i>Método de Pólya</h6>
+                <button type="button" class="btn btn-sm btn-primary" id="bpolyaSaveBtn">
+                  <i class="ri-save-3-line me-1"></i> Guardar
+                </button>
+              </div>
+              <div class="accordion accordion-flush" id="bpolyaAccordion" style="max-height: 500px; overflow-y: auto;">
+                <div class="accordion-item">
+                  <h2 class="accordion-header" id="bpolyaHeading1">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#bpolyaStep1" aria-expanded="false" aria-controls="bpolyaStep1">
+                      <span class="me-2 badge bg-label-primary">1</span> Comprender
+                    </button>
+                  </h2>
+                  <div id="bpolyaStep1" class="accordion-collapse collapse" aria-labelledby="bpolyaHeading1" data-bs-parent="#bpolyaAccordion">
+                    <div class="accordion-body p-2">
+                      <div class="mb-2">
+                        <label class="form-label small">Operación</label>
+                        <select class="form-select form-select-sm" id="bpolya-ident-op">
+                          <option value="">Selecciona</option>
+                          <option value="suma">Suma</option>
+                          <option value="resta">Resta</option>
+                          <option value="multiplicacion">Multiplicación</option>
+                          <option value="division">División</option>
+                        </select>
+                      </div>
+                      <div class="mb-2">
+                        <label class="form-label small">¿Por qué?</label>
+                        <textarea class="form-control form-control-sm" rows="2" id="bpolya-por-que" placeholder="Explica"></textarea>
+                      </div>
+                      <div>
+                        <label class="form-label small">Números</label>
+                        <div id="bpolya-sumandos"></div>
+                        <button type="button" class="btn btn-sm btn-outline-primary mt-1" id="bpolya-add-sumando">
+                          <i class="ri-add-line"></i>
+                          <span class="ms-1">Agregar número</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="accordion-item">
+                  <h2 class="accordion-header" id="bpolyaHeading2">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#bpolyaStep2" aria-expanded="false" aria-controls="bpolyaStep2">
+                      <span class="me-2 badge bg-label-info">2</span> Planificar
+                    </button>
+                  </h2>
+                  <div id="bpolyaStep2" class="accordion-collapse collapse" aria-labelledby="bpolyaHeading2" data-bs-parent="#bpolyaAccordion">
+                    <div class="accordion-body p-2">
+                      <label class="form-label small">Estrategia</label>
+                      <textarea class="form-control form-control-sm" rows="3" id="bpolya-estrategia" placeholder="Plan"></textarea>
+                    </div>
+                  </div>
+                </div>
+                <div class="accordion-item">
+                  <h2 class="accordion-header" id="bpolyaHeading3">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#bpolyaStep3" aria-expanded="false" aria-controls="bpolyaStep3">
+                      <span class="me-2 badge bg-label-warning">3</span> Ejecutar
+                    </button>
+                  </h2>
+                  <div id="bpolyaStep3" class="accordion-collapse collapse" aria-labelledby="bpolyaHeading3" data-bs-parent="#bpolyaAccordion">
+                    <div class="accordion-body p-2">
+                      <div class="mb-2">
+                        <label class="form-label small">Desarrollo</label>
+                        <textarea class="form-control form-control-sm" rows="3" id="bpolya-desarrollo" placeholder="Pasos"></textarea>
+                      </div>
+                      <div>
+                        <label class="form-label small">Calculadora</label>
+                        <div id="bpolya-calc-inputs" class="mb-1"></div>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="bpolya-add-calc-input">
+                          <i class="ri-add-line"></i>
+                          <span class="ms-1">Agregar casilla</span>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary ms-1" id="bpolya-calc">
+                          <i class="ri-equal-line"></i>
+                          <span class="ms-1">Calcular</span>
+                        </button>
+                        <div class="small text-muted mt-1">= <span id="bpolya-calc-result">—</span></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="accordion-item">
+                  <h2 class="accordion-header" id="bpolyaHeading4">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#bpolyaStep4" aria-expanded="false" aria-controls="bpolyaStep4">
+                      <span class="me-2 badge bg-label-success">4</span> Verificar
+                    </button>
+                  </h2>
+                  <div id="bpolyaStep4" class="accordion-collapse collapse" aria-labelledby="bpolyaHeading4" data-bs-parent="#bpolyaAccordion">
+                    <div class="accordion-body p-2">
+                      <div class="mb-2">
+                        <label class="form-label small">Revisión</label>
+                        <textarea class="form-control form-control-sm" rows="2" id="bpolya-revision" placeholder="Verifica"></textarea>
+                      </div>
+                      <div>
+                        <label class="form-label small">Resultado</label>
+                        <input type="text" class="form-control form-control-sm" id="bpolya-mi-resultado" placeholder="Tu resultado">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Columna derecha: Contenido -->
+          <div class="col-lg-7">
+            <div class="p-4 bg-white rounded-3 shadow-sm">
+
+          <!-- Descripción -->
+          <div class="content-section mb-4 pb-3 border-bottom" id="contentDescWrap">
+            <h6 class="text-primary fw-bold mb-2">Descripción</h6>
+            <p id="contentDesc" class="mb-0 text-secondary"></p>
+          </div>
+
+          <!-- Teoría -->
+          <div class="content-section mb-4 pb-3 border-bottom" id="contentTeoriaWrap">
+            <h6 class="text-primary fw-bold mb-2">Teoría</h6>
+            <div id="contentTeoria" class="text-secondary"></div>
+          </div>
+
+          <!-- Pasos -->
+          <div class="content-section mb-4 pb-3 border-bottom" id="contentPasosWrap">
+            <h6 class="text-primary fw-bold mb-2">Aplicación del Metodo</h6>
+            <ul id="contentPasos" class="mb-0 ps-3 text-secondary" style="line-height: 1.7;"></ul>
+          </div>
+
+          <!-- Ejemplo -->
+          <div class="content-section" id="contentEjemploWrap">
+            <h6 class="text-primary fw-bold mb-2">Ejemplo</h6>
+            <div id="contentEjemplo" class="rounded p-3 bg-light border text-secondary"></div>
+          </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+   <div class="position-absolute bottom-0 end-0 p-3" style="z-index: 10;">
+      <div class="d-flex align-items-center gap-3 bg-white shadow-sm p-3 rounded-3 border">
+
+        <label class="fw-semibold text-primary mb-0">¿Ha comprendido el tema?</label>
+
+        <!-- Radios -->
+        <div class="d-flex align-items-center gap-2">
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="comprensionTema" id="comprensionSi" value="si">
+            <label class="form-check-label text-secondary" for="comprensionSi">Sí</label>
+          </div>
+
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="comprensionTema" id="comprensionNo" value="no">
+            <label class="form-check-label text-secondary" for="comprensionNo">No</label>
+          </div>
+        </div>
+
+        <!-- Botón -->
+        <button class="btn btn-primary fw-semibold px-3" id="btnConfirmarComprension">
+          Confirmar
+        </button>
+
+      </div>
+    </div>
+
+</div>
+
+
+
+{% endblock %}
+
+{% block page_css %}
+<link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+<style>
+  .option-card {
+    border: none;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(105, 80, 80, 0.05);
+  }
+  
+  .option-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+  }
+  
+  .icon-wrapper {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+  }
+  
+  .option-card[data-option="aprender"] .icon-wrapper {
+    background-color: rgba(105, 108, 255, 0.1);
+    color: #696cff;
+  }
+  
+  .option-card[data-option="jugar"] .icon-wrapper {
+    background-color: rgba(105, 208, 155, 0.1);
+    color: #28c76f;
+  }
+  
+  .option-card[data-option="practicar"] .icon-wrapper {
+    background-color: rgba(0, 207, 232, 0.1);
+    color: #00cfeb;
+  }
+  
+  .btn {
+    padding: 0.6rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+  }
+  
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .card-body {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  
+  .btn {
+    margin-top: auto;
+    align-self: center;
+  }
+
+  /* Practice modal UI */
+  .practice-panel {
+    background: #f4f5fb;
+    border: 1px solid rgba(105,108,255,0.15);
+    border-radius: 10px;
+    padding: 0.75rem;
+  }
+  .practice-banner {
+    background: linear-gradient(135deg, rgba(105,108,255,0.1), rgba(155,81,224,0.1));
+    border: 1px dashed rgba(155,81,224,0.35);
+    color: #9b51e0;
+    text-align: center;
+    font-weight: 700;
+    font-size: 1.8rem;
+    border-radius: 8px;
+    padding: 1rem;
+  }
+  .practice-input .form-control {
+    font-size: 1.05rem;
+  }
+  #practicaFeedback {
+    min-height: 1.5rem;
+  }
+  #contentModal .modal-content { border-radius: 12px; box-shadow: 0 12px 40px rgba(0,0,0,0.15); }
+  #contentModal .modal-header { background: linear-gradient(135deg, rgba(255,193,7,0.12), rgba(255,193,7,0.04)); border-bottom: 1px solid rgba(255,193,7,0.25); }
+  .content-modal-body p { line-height: 1.7; }
+  .content-modal-body h1, .content-modal-body h2, .content-modal-body h3 { color: #111827; }
+  .content-modal-body img { max-width: 100%; height: auto; border-radius: 8px; }
+  .content-section { padding: .25rem 0 .75rem; }
+  .content-section + .content-section { border-top: 1px dashed rgba(0,0,0,.08); margin-top: .75rem; padding-top: .75rem; }
+  .filter-select { min-width: 190px; background-color: #6f42c1; color: #fff; border-color: #6f42c1; }
+  .filter-select:focus { box-shadow: 0 0 0 0.2rem rgba(111,66,193,.25); color: #fff; }
+  .avatar-sm { width: 40px; height: 40px; }
+  .library-item .card-body { padding-top: 1rem; padding-bottom: 1rem; }
+  /* Estilo sílabo: color lateral por operación */
+  .library-item { border-left: 4px solid #e9ecef; }
+  .library-item[data-operacion="suma"] { border-left-color: #28c76f; }
+  .library-item[data-operacion="resta"] { border-left-color: #ff9f43; }
+  .library-item[data-operacion="multiplicacion"] { border-left-color: #7367f0; }
+  .library-item[data-operacion="division"] { border-left-color: #ea5455; }
+  /* Botones flotantes prev/next pegados al modal */
+  .modal-dialog{ position: relative; }
+  .content-nav-btn{
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: #6f42c1; /* morado */
+    color: #fff;
+    border: none;
+    box-shadow: 0 6px 18px rgba(111,66,193,.35);
+    z-index: 1061; /* por encima del modal (1055) y backdrop (1050) */
+    pointer-events: auto;
+  }
+  .content-nav-btn:hover{ filter: brightness(1.05); }
+  .content-nav-btn:disabled{ opacity: .45; pointer-events: none; }
+  #contentNavPrev{ left: -12px; }  /* fuera del borde del modal con margen */
+  #contentNavNext{ right: -12px; }
+
+  /* Estilo académico del modal */
+  #contentModal .modal-header{
+    background: linear-gradient(135deg, #7c4dff, #6f42c1);
+    border-bottom: none;
+  }
+  #contentModal .modal-title{ letter-spacing: .2px; }
+  #contentModal .content-section{ padding: .75rem 0 1rem; }
+  #contentModal .content-section h6{
+    font-weight: 700; letter-spacing: .3px; text-transform: none;
+  }
+  #contentModal .content-section > *:not(h6){ font-size: .97rem; }
+  #contentModal .content-section{ border-left: 3px solid rgba(111,66,193,.35); padding-left: .75rem; }
+  #contentModal .content-section + .content-section{ border-top: 1px dashed rgba(0,0,0,.06); }
+  #contentEjemplo { white-space: pre-wrap; }
+  /* Pólya dentro del modal */
+  #bpolyaAccordion .accordion-button { font-size: 0.9rem; padding: 0.5rem 0.75rem; }
+  #bpolyaAccordion .form-control-sm, #bpolyaAccordion .form-select-sm { font-size: 0.85rem; }
+  #bpolyaAccordion .form-label.small { font-size: 0.8rem; margin-bottom: 0.25rem; }
+ </style>
+{% endblock %}
+
+{% block page_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    function cleanupModalBackdrops(){
+      document.querySelectorAll('.modal-backdrop').forEach(function(b){ b.remove(); });
+      document.body.classList.remove('modal-open');
+      document.body.style.overflow = '';
+      document.body.style.paddingRight = '';
+    }
+
+    ['gameModal','practicaModal','contentModal'].forEach(function(id){
+      var el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('hidden.bs.modal', cleanupModalBackdrops);
+      }
+    });
+    // Add click handlers for each option
+    document.querySelectorAll('.option-card').forEach(card => {
+      card.addEventListener('click', function(e) {
+        if (!e.target.closest('button')) {
+          const option = this.getAttribute('data-option');
+          // Handle card click (not on the button)
+          console.log('Selected option:', option);
+          // You can add navigation or other actions here
+        }
+      });
+    });
+    
+    // Add button click handlers (guard if not present)
+    var aprenderBtn = document.querySelector('[data-option="aprender"] .btn');
+    if (aprenderBtn) aprenderBtn.addEventListener('click', function() { console.log('Aprender Habilidad clicked'); });
+    var jugarBtn = document.querySelector('[data-option="jugar"] .btn');
+    if (jugarBtn) jugarBtn.addEventListener('click', function() { console.log('Jugar clicked'); });
+    var practicarBtn = document.querySelector('[data-option="practicar"] .btn');
+    if (practicarBtn) practicarBtn.addEventListener('click', function() { console.log('Practicar clicked'); });
+
+    // Filtro por operación dentro de Contenido
+    var filter = document.getElementById('libraryFilter');
+    function applyOperationFilter(){
+      var val = (filter && filter.value) ? filter.value.toLowerCase() : 'todos';
+      var cards = document.querySelectorAll('#section-Contenido .library-item');
+      cards.forEach(function(card){
+        var op = (card.getAttribute('data-operacion') || '').toLowerCase();
+        if (val === 'todos' || op === val) card.classList.remove('d-none');
+        else card.classList.add('d-none');
+      });
+      refreshContenidoAnchors();
+    }
+    applyOperationFilter();
+    if (filter) filter.addEventListener('change', applyOperationFilter);
+    // Botones de navegación fuera del modal
+    var prevBtn = document.getElementById('contentNavPrev');
+    var nextBtn = document.getElementById('contentNavNext');
+    if (prevBtn) prevBtn.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); navigateContent(-1); });
+    if (nextBtn) nextBtn.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); navigateContent(1); });
+
+    // Navegación con teclado cuando el modal está abierto
+    var contentModalEl = document.getElementById('contentModal');
+    function keyHandler(e){
+      if (e.key === 'ArrowLeft') navigateContent(-1);
+      else if (e.key === 'ArrowRight') navigateContent(1);
+    }
+    if (contentModalEl){
+      var polyaEl = document.getElementById('polyaModal');
+      contentModalEl.addEventListener('shown.bs.modal', function(){
+        refreshContenidoAnchors();
+        updateNavButtons();
+        // mostrar botones flotantes al abrir
+        if (prevBtn) prevBtn.style.display = 'flex';
+        if (nextBtn) nextBtn.style.display = 'flex';
+        document.addEventListener('keydown', keyHandler);
+      });
+      contentModalEl.addEventListener('hidden.bs.modal', function(){
+        // ocultar botones flotantes al cerrar
+        if (prevBtn) prevBtn.style.display = 'none';
+        if (nextBtn) nextBtn.style.display = 'none';
+        document.removeEventListener('keydown', keyHandler);
+      });
+    }
+  });
+
+
+function abrirJuego(titulo, descripcion, solucion) {
+    const url = `{% url 'biblioteca:juego_operaciones' %}?titulo=${encodeURIComponent(titulo)}&descripcion=${encodeURIComponent(descripcion)}&solucion=${encodeURIComponent(solucion)}`;
+    fetch(url)
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById("gameContent").innerHTML = html;
+            const modal = new bootstrap.Modal(document.getElementById("gameModal"));
+            
+            // Update the modal title and description
+            document.getElementById("gameModalLabel").textContent = decodeJsEscapes(titulo);
+            const descElement = document.getElementById("gameModalDesc");
+            if (descElement) {
+                descElement.textContent = decodeJsEscapes(descripcion);
+            }
+            
+            // Evitar duplicar backdrops si el modal ya fue abierto por data-bs-toggle
+            const gm = document.getElementById('gameModal');
+            if (gm && !gm.classList.contains('show')) {
+              modal.show();
+            }
+        });
+}
+
+let practicaRespuestaCorrecta = '';
+function abrirPractica(titulo, descripcion, solucion) {
+    practicaRespuestaCorrecta = (solucion || '').toString().trim();
+    const modalEl = document.getElementById('practicaModal');
+    const modal = new bootstrap.Modal(modalEl);
+    
+    const titleEl = document.getElementById('practicaModalTitle');
+    const descEl = document.getElementById('practicaProblemDesc');
+    const bannerEl = document.getElementById('practicaTitleBanner');
+    const inputEl = document.getElementById('practicaRespuesta');
+    const feedbackEl = document.getElementById('practicaFeedback');
+    const verificarBtn = document.getElementById('practicaVerificar');
+    const reiniciarBtn = document.getElementById('practicaReiniciar');
+
+    if (titleEl) titleEl.textContent = decodeJsEscapes(titulo || 'Práctica');
+    if (descEl) descEl.textContent = decodeJsEscapes(descripcion || '');
+    if (bannerEl) bannerEl.textContent = decodeJsEscapes(titulo || '—');
+
+    if (inputEl) {
+      inputEl.value = '';
+      inputEl.classList.remove('is-valid', 'is-invalid');
+    }
+    if (feedbackEl) {
+      feedbackEl.textContent = '';
+      feedbackEl.className = '';
+    }
+
+    // Handlers (overwrite to avoid duplicados)
+    if (verificarBtn) {
+      verificarBtn.onclick = function() {
+        if (!inputEl) return;
+        const valor = (inputEl.value || '').toString().trim();
+        if (!valor) {
+          feedbackEl.className = 'text-muted';
+          feedbackEl.textContent = 'Escribe una respuesta para verificar.';
+          return;
+        }
+        const correcto = compararRespuestas(valor, practicaRespuestaCorrecta);
+        if (correcto) {
+          inputEl.classList.remove('is-invalid');
+          inputEl.classList.add('is-valid');
+          feedbackEl.className = 'text-success fw-semibold';
+          feedbackEl.textContent = '✅ ¡Respuesta correcta!';
+        } else {
+          inputEl.classList.remove('is-valid');
+          inputEl.classList.add('is-invalid');
+          feedbackEl.className = 'text-danger fw-semibold';
+          feedbackEl.textContent = '❌ Respuesta incorrecta. Intenta nuevamente.';
+        }
+      };
+    }
+
+    if (reiniciarBtn) {
+      reiniciarBtn.onclick = function() {
+        if (inputEl) {
+          inputEl.value = '';
+          inputEl.classList.remove('is-valid', 'is-invalid');
+          inputEl.focus();
+        }
+        if (feedbackEl) {
+          feedbackEl.textContent = '';
+          feedbackEl.className = '';
+        }
+      };
+    }
+
+    if (inputEl) {
+      inputEl.onkeydown = function(e){
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          if (verificarBtn) verificarBtn.click();
+        }
+      };
+    }
+
+    // Evitar duplicar backdrops si el modal ya fue abierto por data-bs-toggle
+    if (modalEl && !modalEl.classList.contains('show')) {
+      modal.show();
+    }
+}
+
+function decodeJsEscapes(str){
+  if (str == null) return '';
+  var out = String(str);
+  for (var i = 0; i < 3; i++) {
+    out = out.replace(/\\+u([0-9a-fA-F]{4})/g, '\\u$1').replace(/\\+x([0-9a-fA-F]{2})/g, '\\x$1');
+    try {
+      out = JSON.parse('"' + out.replace(/"/g,'\\"') + '"');
+    } catch(e) {}
+    var prev = out;
+    out = out
+      .replace(/\\u([0-9a-fA-F]{4})/g, function(_,h){ return String.fromCharCode(parseInt(h,16)); })
+      .replace(/\\x([0-9a-fA-F]{2})/g, function(_,h){ return String.fromCharCode(parseInt(h,16)); })
+      .replace(/\\n/g, '\n')
+      .replace(/\\r/g, '\r')
+      .replace(/\\t/g, '\t');
+    if (out === prev || (!/\\u[0-9a-fA-F]{4}/.test(out) && !/\\x[0-9a-fA-F]{2}/.test(out))) break;
+  }
+  return out;
+}
+
+function replaceCommonEscapes(s){
+  return String(s)
+    .replace(/\\u003D/gi, '=')
+    .replace(/\\u002D/gi, '-')
+    .replace(/\\u0009/gi, '\t')
+    .replace(/\\u000a/gi, '\n')
+    .replace(/\\u000d/gi, '\r');
+}
+
+function refreshContenidoAnchors(){
+  contenidoAnchors = Array.from(document.querySelectorAll('#section-Contenido .library-item:not(.d-none) a[data-bs-target="#contentModal"]'));
+}
+
+function abrirContenidoDesdeData(element) {
+  // Actualizar lista según filtro activo
+  refreshContenidoAnchors();
+  currentContentIndex = contenidoAnchors.indexOf(element);
+
+  const titulo = decodeJsEscapes(element.dataset.titulo);
+  const descripcion = decodeJsEscapes(element.dataset.descripcion);
+  const explicacion = decodeJsEscapes(element.dataset.explicacion);
+  var pasosRaw = element.dataset.pasos || '';
+  var pasosDec = decodeJsEscapes(pasosRaw);
+  var pasos;
+  try { pasos = pasosDec ? JSON.parse(pasosDec) : []; }
+  catch(e) { pasos = pasosDec; }
+  const ejemplo = decodeJsEscapes(element.dataset.ejemplo);
+  const bibliotecaId = element.dataset.bibliotecaId;
+  const operacion = element.closest('.library-item') && element.closest('.library-item').getAttribute('data-operacion')
+    ? element.closest('.library-item').getAttribute('data-operacion').toLowerCase()
+    : '';
+
+  abrirContenido(titulo, descripcion, explicacion, pasos, ejemplo, bibliotecaId, operacion);
+  updateNavButtons();
+}
+
+function navigateContent(dir){
+  if (!contenidoAnchors || contenidoAnchors.length === 0) return;
+  if (currentContentIndex < 0) currentContentIndex = 0;
+  var next = currentContentIndex + (dir > 0 ? 1 : -1);
+  // Buscar el siguiente válido dentro de rango
+  if (next < 0 || next >= contenidoAnchors.length) return;
+  currentContentIndex = next;
+  var el = contenidoAnchors[currentContentIndex];
+  if (el) abrirContenidoDesdeData(el);
+}
+
+var bibliotecaIdActual = null;
+
+function updateNavButtons(){
+  var prevBtn = document.getElementById('contentNavPrev');
+  var nextBtn = document.getElementById('contentNavNext');
+  if (!prevBtn || !nextBtn) return;
+  if (!contenidoAnchors || contenidoAnchors.length === 0){
+    prevBtn.disabled = true; nextBtn.disabled = true; return;
+  }
+  prevBtn.disabled = currentContentIndex <= 0;
+  nextBtn.disabled = currentContentIndex >= (contenidoAnchors.length - 1);
+}
+
+function abrirContenido(titulo, descripcion, teoria, pasos, ejemploHtml, bibliotecaId, operacion) {
+  const modalEl = document.getElementById('contentModal');
+  const modal = bootstrap.Modal.getOrCreateInstance(modalEl, { backdrop: 'static', keyboard: false });
+
+  bibliotecaIdActual = bibliotecaId || null;
+
+  document.getElementById('contentModalLabel').textContent = decodeJsEscapes(titulo || 'Contenido');
+
+  // Descripción
+  const desc = decodeJsEscapes(descripcion || '');
+  document.getElementById('contentDesc').textContent = desc;
+  document.getElementById('contentDescWrap').style.display = desc ? '' : 'none';
+
+  // Teoría
+  const te = replaceCommonEscapes(decodeJsEscapes(teoria || ''));
+  document.getElementById('contentTeoria').innerHTML = te;
+  document.getElementById('contentTeoriaWrap').style.display = te ? '' : 'none';
+
+  // Pasos o trucos
+  const pasosEl = document.getElementById('contentPasos');
+  pasosEl.innerHTML = '';
+  let items = [];
+
+  if (Array.isArray(pasos)) {
+    items = pasos;
+  } else if (typeof pasos === 'string' && pasos.trim) {
+    try {
+      const parsed = JSON.parse(pasos);
+      if (Array.isArray(parsed)) items = parsed;
+    } catch {
+      items = pasos.split(/\r?\n|\||;/).map(s => s.trim()).filter(Boolean);
+    }
+  }
+
+  if (items.length > 0) {
+    items.forEach(txt => {
+      const li = document.createElement('li');
+      li.textContent = replaceCommonEscapes(decodeJsEscapes(txt));
+      pasosEl.appendChild(li);
+    });
+    document.getElementById('contentPasosWrap').style.display = '';
+  } else {
+    document.getElementById('contentPasosWrap').style.display = 'none';
+  }
+
+  // Ejemplo
+  const ej = replaceCommonEscapes(decodeJsEscapes(ejemploHtml || ''));
+  document.getElementById('contentEjemplo').innerHTML = ej;
+  document.getElementById('contentEjemploWrap').style.display = ej ? '' : 'none';
+
+  // Configurar Método de Pólya para esta biblioteca
+  try {
+    bpolyaSetup(bibliotecaIdActual, (operacion || '').toLowerCase());
+  } catch (e) { /* noop */ }
+
+  modal.show();
+}
+
+
+
+function compararRespuestas(userVal, correctVal){
+  const u = userVal.replace(/\s+/g,'').toLowerCase();
+  const c = (correctVal || '').replace(/\s+/g,'').toLowerCase();
+  // Intentar comparar como número si aplica
+  const un = Number(userVal);
+  const cn = Number(correctVal);
+  if (!isNaN(un) && !isNaN(cn)) return un === cn;
+  return u === c;
+}
+
+// --- Pólya en Biblioteca (Base de Datos) ---
+var bpolyaState = { id: null, op: '' };
+
+function bpolyaRenderSumandos(values){
+  var wrap = document.getElementById('bpolya-sumandos');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  var list = (Array.isArray(values) && values.length) ? values : [''];
+  list.forEach(function(v){
+    var group = document.createElement('div');
+    group.className = 'mb-2';
+    var input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'form-control';
+    input.name = 'bpolya_sumando';
+    input.placeholder = 'Ingresa un número o sumando';
+    input.value = v || '';
+    group.appendChild(input);
+    wrap.appendChild(group);
+  });
+}
+
+function bpolyaGetSumandos(){
+  var wrap = document.getElementById('bpolya-sumandos');
+  if (!wrap) return [];
+  var inputs = wrap.querySelectorAll('input[name="bpolya_sumando"]');
+  var items = [];
+  inputs.forEach(function(inp){ var v = (inp.value || '').trim(); if (v) items.push(v); });
+  return items;
+}
+
+function bpolyaGetCalcNumbers(){
+  var wrap = document.getElementById('bpolya-calc-inputs');
+  if (!wrap) return [];
+  var inputs = wrap.querySelectorAll('input[name="bpolya_calc_num"]');
+  var nums = [];
+  inputs.forEach(function(inp){ var v = parseFloat(inp.value); if (!isNaN(v)) nums.push(v); });
+  return nums;
+}
+
+function bpolyaAddCalcInput(value){
+  var wrap = document.getElementById('bpolya-calc-inputs');
+  if (!wrap) return;
+  var input = document.createElement('input');
+  input.type = 'number';
+  input.className = 'form-control mb-2';
+  input.name = 'bpolya_calc_num';
+  input.placeholder = 'Número';
+  input.value = (value !== undefined && value !== null) ? value : '';
+  wrap.appendChild(input);
+}
+
+function bpolyaCalc(){
+  var nums = bpolyaGetCalcNumbers();
+  var resultEl = document.getElementById('bpolya-calc-result');
+  if (!resultEl) return;
+  if (nums.length < 2){ resultEl.textContent = '—'; return; }
+  var op = (document.getElementById('bpolya-ident-op') && document.getElementById('bpolya-ident-op').value) ? document.getElementById('bpolya-ident-op').value.toLowerCase() : (bpolyaState.op || 'suma');
+  var r;
+  switch(op){
+    case 'suma': r = nums.reduce(function(acc,n){ return acc + n; }, 0); break;
+    case 'resta': r = nums.slice(1).reduce(function(acc,n){ return acc - n; }, nums[0]); break;
+    case 'multiplicacion': r = nums.reduce(function(acc,n){ return acc * n; }, 1); break;
+    case 'division':
+      r = nums[0];
+      for (var i=1;i<nums.length;i++){ if (nums[i] === 0){ resultEl.textContent = 'No permitido'; return; } r = r / nums[i]; }
+      break;
+    default: r = nums.reduce(function(acc,n){ return acc + n; }, 0);
+  }
+  resultEl.textContent = isNaN(r) ? '—' : r;
+}
+
+function bpolyaLoad(){
+  if (!bpolyaState.id) return;
+  
+  var url = "{% url 'biblioteca:cargar_polya' %}?biblioteca_id=" + bpolyaState.id;
+  
+  fetch(url, {
+    method: 'GET',
+    headers: {
+      'X-CSRFToken': getCookie('csrftoken')
+    },
+    credentials: 'same-origin'
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(response){
+    if (!response.success) {
+      console.log('Error al cargar Pólya:', response.message);
+      // Inicializar con valores vacíos
+      bpolyaInitEmpty();
+      return;
+    }
+    
+    var data = response.polya || {};
+    
+    // Si no hay datos guardados, inicializar vacío
+    if (!response.polya) {
+      bpolyaInitEmpty();
+      return;
+    }
+    
+    // Cargar datos
+    var ident = document.getElementById('bpolya-ident-op');
+    if (ident) ident.value = data.identificacion_operacion || (bpolyaState.op || '');
+    var pq = document.getElementById('bpolya-por-que'); if (pq) pq.value = data.por_que_esa_operacion || '';
+    bpolyaRenderSumandos(data.sumandos || []);
+    var est = document.getElementById('bpolya-estrategia'); if (est) est.value = data.estrategia_principal || '';
+    var des = document.getElementById('bpolya-desarrollo'); if (des) des.value = data.desarrollo || '';
+    var calcWrap = document.getElementById('bpolya-calc-inputs');
+    if (calcWrap) { calcWrap.innerHTML = ''; }
+    // Por ahora no guardamos calc_numeros en BD, inicializar vacío
+    bpolyaAddCalcInput(''); bpolyaAddCalcInput('');
+    var rev = document.getElementById('bpolya-revision'); if (rev) rev.value = data.revision_verificacion || '';
+    var miRes = document.getElementById('bpolya-mi-resultado'); if (miRes) miRes.value = data.conclusion_final || '';
+  })
+  .catch(function(e){ 
+    console.error('Error al cargar Pólya:', e);
+    bpolyaInitEmpty();
+  });
+}
+
+function bpolyaInitEmpty(){
+  var ident = document.getElementById('bpolya-ident-op');
+  if (ident) ident.value = bpolyaState.op || '';
+  bpolyaRenderSumandos([]);
+  var calcWrap = document.getElementById('bpolya-calc-inputs');
+  if (calcWrap) { calcWrap.innerHTML = ''; }
+  bpolyaAddCalcInput(''); bpolyaAddCalcInput('');
+}
+
+function bpolyaSave(){
+  if (!bpolyaState.id) return;
+  
+  var btn = document.getElementById('bpolyaSaveBtn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ri-loader-4-line me-1"></i> Guardando...';
+  }
+  
+  var formData = new FormData();
+  formData.append('biblioteca_id', bpolyaState.id);
+  formData.append('identificacion_operacion', document.getElementById('bpolya-ident-op') ? document.getElementById('bpolya-ident-op').value : '');
+  formData.append('por_que_esa_operacion', document.getElementById('bpolya-por-que') ? document.getElementById('bpolya-por-que').value : '');
+  formData.append('sumandos', JSON.stringify(bpolyaGetSumandos()));
+  formData.append('estrategia_principal', document.getElementById('bpolya-estrategia') ? document.getElementById('bpolya-estrategia').value : '');
+  formData.append('desarrollo', document.getElementById('bpolya-desarrollo') ? document.getElementById('bpolya-desarrollo').value : '');
+  formData.append('revision_verificacion', document.getElementById('bpolya-revision') ? document.getElementById('bpolya-revision').value : '');
+  formData.append('conclusion_final', document.getElementById('bpolya-mi-resultado') ? document.getElementById('bpolya-mi-resultado').value : '');
+  
+  var url = "{% url 'biblioteca:guardar_polya' %}";
+  
+  fetch(url, {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': getCookie('csrftoken')
+    },
+    body: formData,
+    credentials: 'same-origin'
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(response){
+    if (btn) {
+      btn.disabled = false;
+      if (response.success) {
+        btn.classList.remove('btn-primary'); btn.classList.add('btn-success');
+        btn.innerHTML = '<i class="ri-check-line me-1"></i> Guardado';
+        setTimeout(function(){
+          btn.classList.remove('btn-success'); btn.classList.add('btn-primary');
+          btn.innerHTML = '<i class="ri-save-3-line me-1"></i> Guardar';
+        }, 2000);
+      } else {
+        btn.classList.remove('btn-primary'); btn.classList.add('btn-danger');
+        btn.innerHTML = '<i class="ri-close-line me-1"></i> Error';
+        setTimeout(function(){
+          btn.classList.remove('btn-danger'); btn.classList.add('btn-primary');
+          btn.innerHTML = '<i class="ri-save-3-line me-1"></i> Guardar';
+        }, 2000);
+        console.error('Error al guardar:', response.message);
+      }
+    }
+  })
+  .catch(function(e){
+    if (btn) {
+      btn.disabled = false;
+      btn.classList.remove('btn-primary'); btn.classList.add('btn-danger');
+      btn.innerHTML = '<i class="ri-close-line me-1"></i> Error';
+      setTimeout(function(){
+        btn.classList.remove('btn-danger'); btn.classList.add('btn-primary');
+        btn.innerHTML = '<i class="ri-save-3-line me-1"></i> Guardar';
+      }, 2000);
+    }
+    console.error('Error al guardar Pólya:', e);
+  });
+}
+
+function bpolyaSetup(id, operacion){
+  bpolyaState.id = id; bpolyaState.op = operacion || bpolyaState.op || '';
+  // Inicializar listeners (overwrite handlers cada vez)
+  var addS = document.getElementById('bpolya-add-sumando'); if (addS) addS.onclick = function(){ var cur = bpolyaGetSumandos(); cur.push(''); bpolyaRenderSumandos(cur); };
+  var addCalc = document.getElementById('bpolya-add-calc-input'); if (addCalc) addCalc.onclick = function(){ bpolyaAddCalcInput(''); };
+  var calcBtn = document.getElementById('bpolya-calc'); if (calcBtn) calcBtn.onclick = bpolyaCalc;
+  var saveBtn = document.getElementById('bpolyaSaveBtn'); if (saveBtn) saveBtn.onclick = bpolyaSave;
+  // Preseleccionar operación si existe
+  var ident = document.getElementById('bpolya-ident-op'); if (ident && bpolyaState.op && !ident.value){ ident.value = bpolyaState.op; }
+  bpolyaLoad();
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+  var btnComprension = document.getElementById('btnConfirmarComprension');
+  if (btnComprension) {
+    btnComprension.addEventListener('click', function(){
+      var seleccion = document.querySelector('input[name="comprensionTema"]:checked');
+      if (!seleccion || seleccion.value !== 'si') {
+        return;
+      }
+      if (!bibliotecaIdActual) {
+        return;
+      }
+      var formData = new FormData();
+      formData.append('biblioteca_id', bibliotecaIdActual);
+      var url = "{% url 'biblioteca:marcar_contenido_visto' %}";
+
+      fetch(url, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: formData,
+        credentials: 'same-origin'
+      }).then(function(r){ return r.json(); }).then(function(j){
+        console.log('marcar_contenido_visto', j);
+      }).catch(function(e){ console.error(e); });
+    });
+  }
+});
+
+function getCookie(name) {
+  var cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    var cookies = document.cookie.split(';');
+    for (var i = 0; i < cookies.length; i++) {
+      var cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+    let timeLeft = 30;
+    let timer;
+    let gameActive = true;
+    let canAnswer = true;
+
+    // Función para iniciar el cronómetro
+
+ // Mover las variables al ámbito global
+    window.timeLeft = 30;
+    window.timer = null;
+    window.gameActive = true;
+
+    function startTimer() {
+        window.timeLeft = 30;
+        window.gameActive = true;
+        
+        const timerElement = document.getElementById('timer');
+        if (timerElement) {
+            timerElement.classList.remove('text-danger', 'fw-bold');
+            timerElement.style.animation = 'none';
+        }
+
+        updateTimerDisplay();
+        
+        // Limpiar cualquier temporizador existente
+        if (window.timer) {
+            clearInterval(window.timer);
+        }
+        
+        // Iniciar cuenta regresiva
+        window.timer = setInterval(function() {
+            if (window.timeLeft > 0 && window.gameActive) {
+                window.timeLeft--;
+                updateTimerDisplay();
+                
+                // Animación cuando el tiempo esté por terminar
+                if (window.timeLeft <= 5) {
+                    const timerElement = document.getElementById('timer');
+                    if (timerElement) {
+                        timerElement.classList.add('text-danger', 'fw-bold');
+                        timerElement.style.animation = 'pulse 1s infinite';
+                    }
+                }
+            } else if (window.gameActive) {
+                clearInterval(window.timer);
+                timeUp();
+            }
+        }, 1000);
+    }
+
+    function updateTimerDisplay() {
+        const timeDisplay = document.getElementById('time-display');
+        if (timeDisplay) {
+            timeDisplay.textContent = window.timeLeft;
+        }
+    }
+
+    function timeUp() {
+        if (!window.gameActive) return;
+        window.gameActive = false;
+
+        // Deshabilitar respuestas
+        document.querySelectorAll('.option-btn').forEach(btn => {
+            btn.disabled = true;
+        });
+
+        // Mostrar mensaje
+        const feedbackElement = document.getElementById('feedback');
+        if (feedbackElement) {
+            feedbackElement.textContent = "⏱️ ¡Tiempo agotado!";
+            feedbackElement.className = "text-warning h4";
+        }
+
+        // Mostrar botón de reinicio
+        const restartBtn = document.getElementById('restart-btn');
+        if (restartBtn) {
+            restartBtn.style.display = 'inline-block';
+        }
+    }
+
+    function restartGame() {
+        // Limpiar feedback y botones
+        const feedbackElement = document.getElementById('feedback');
+        if (feedbackElement) {
+            feedbackElement.textContent = '';
+            feedbackElement.className = '';
+        }
+        
+        document.querySelectorAll('.option-btn').forEach(btn => {
+            btn.disabled = false;
+            btn.classList.remove('correct', 'incorrect');
+        });
+
+        const restartBtn = document.getElementById('restart-btn');
+        if (restartBtn) {
+            restartBtn.style.display = 'none';
+        }
+        
+        startTimer();
+    }
+
+    // Iniciar el temporizador cuando el DOM esté listo
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', startTimer);
+    } else {
+        startTimer();
+    }
+
+
+    //--------------
+ 
+ 
+
+    // Función para verificar la respuesta seleccionada
+    function checkAnswer(selectedIndex, correctIndex) {
+        if (!canAnswer) return;
+        
+        canAnswer = false;
+        clearInterval(window.timer);
+        
+        const buttons = document.querySelectorAll('.option-btn');
+        const feedbackElement = document.getElementById('feedback');
+        
+        if (!feedbackElement) {
+            console.error("No se encontró el elemento de retroalimentación");
+            return;
+        }
+
+        // Deshabilitar todos los botones
+        buttons.forEach(btn => {
+            if (btn) btn.disabled = true;
+        });
+        
+        // Resaltar respuestas seleccionada y correcta
+        if (selectedIndex === correctIndex) {
+            if (buttons[selectedIndex]) buttons[selectedIndex].classList.add('correct');
+            feedbackElement.textContent = "✅ ¡Respuesta correcta! ¡Buen trabajo!";
+            feedbackElement.className = "text-success h4";
+        } else {
+            if (buttons[selectedIndex]) buttons[selectedIndex].classList.add('incorrect');
+            if (buttons[correctIndex]) {
+                buttons[correctIndex].classList.add('correct');
+                feedbackElement.textContent = `❌ Incorrecto. La respuesta correcta es: ${buttons[correctIndex].textContent}`;
+            } else {
+                feedbackElement.textContent = "❌ Respuesta incorrecta";
+            }
+            feedbackElement.className = "text-danger h4";
+        }
+        
+        // Mostrar el botón de reinicio
+        const restartBtn = document.getElementById('restart-btn');
+        if (restartBtn) {
+            restartBtn.style.display = 'inline-block';
+        }
+    }
+</script>
+{% endblock %} 
