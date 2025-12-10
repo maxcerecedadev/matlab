@@ -12,13 +12,13 @@
                         {{ mision.tipo_operacion }}</span>{% endif %}</h5>
                     <small class="text-muted">#MIS-{{ mision.mision_id|stringformat:"03d" }}</small>
                 </div>
-                <button class="accordion-button collapsed p-0 shadow-none" type="button"
+                <button class="btn btn-primary rounded-pill px-4 py-2" type="button"
                         data-bs-toggle="collapse"
                         data-bs-target="#collapse-mision-{{ mision.mision_id }}"
                         aria-expanded="false"
                         aria-controls="collapse-mision-{{ mision.mision_id }}"
-                        style="background: transparent; width: auto; border: none;">
-                    <i class="ri-arrow-down-s-line"></i>
+                        style="box-shadow: 0 4px 14px rgba(0,0,0,0.15); transition: transform 0.2s; font-weight: bold; border: 2px solid white;">
+                    <i class="ti ti-player-play-filled me-2"></i> JUGAR
                 </button>
             </div>
 
@@ -273,11 +273,14 @@
                                             <div class="form-text">Piensa: ¿Puedes hacerlo diferente?</div>
                                         </div>
                                         <div class="col-12">
-                                            <div class="alert alert-info d-flex align-items-center" role="alert" id="polya-box-reflexion-{{ mision.mision_id }}" style="display:none;">
-                                                <i class="ti ti-question-mark me-2"></i>
+                                            <div class="alert mt-3 d-flex align-items-center" role="alert" id="polya-box-reflexion-{{ mision.mision_id }}"
+                                                 style="display:none; background-color: #E3F2FD; border: 2px solid #90CAF9; border-radius: 16px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                                                <div class="me-3 bg-white rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                                    <i class="ti ti-bulb" style="font-size: 2rem; color: #FBC02D;"></i>
+                                                </div>
                                                 <div>
-                                                    <strong>Pregunta de Reflexión:</strong>
-                                                    <span id="polya-hint-reflexion-{{ mision.mision_id }}"></span>
+                                                    <strong style="color: #1565C0; font-size: 1.1rem; display: block; margin-bottom: 4px; font-family: 'Titillium Web', sans-serif;">🤔 ¡Momento de Pensar!</strong>
+                                                    <span id="polya-hint-reflexion-{{ mision.mision_id }}" style="color: #0D47A1; font-size: 1.1rem; line-height: 1.5;"></span>
                                                 </div>
                                             </div>
                                         </div>
