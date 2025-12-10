@@ -17,7 +17,7 @@
 <script src="{% static 'vendor/libs/select2/select2.js' %}"></script>
 {% endblock vendor_js %}
 
-{% block content %}  
+{% block content %}
 
 <div class="row">
   <div class="col-12">
@@ -41,7 +41,7 @@
               <select class="form-select" name="rol" onchange="this.form.submit()">
                 <option value="">Todos los roles</option>
                 {% for rol in roles %}
-                <option value="{{ rol.rol_id }}" {% if request.GET.rol|default:'' == rol.rol_id|stringformat:'s' %}selected{% endif %}>
+                <option value="{{ rol.rol_id }}" {% if request.GET.rol == rol.rol_id %}selected{% endif %}>
                   {{ rol.nombre }}
                 </option>
                 {% endfor %}
@@ -67,7 +67,7 @@
             <thead>
               <tr>
                 <th>ID</th>
-                <th>Usuario</th> 
+                <th>Usuario</th>
                 <th>Rol</th>
                 <th>Estado</th>
                 <th class="text-center">Acciones</th>
@@ -77,7 +77,7 @@
               {% for usuario in usuarios %}
               <tr>
                 <td>{{ usuario.id }}</td>
-                <td>{{ usuario.username }}</td> 
+                <td>{{ usuario.username }}</td>
                 <td>{{ usuario.rol }}</td>
                 <td>
                   <span class="badge bg-{% if usuario.estado %}success{% else %}danger{% endif %}">
@@ -86,7 +86,7 @@
                 </td>
                 <td class="text-center">
                   <div class="d-flex justify-content-center">
-                    <button type="button" class="btn btn-icon btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#editUserModal" 
+                    <button type="button" class="btn btn-icon btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#editUserModal"
                       data-user-id="{{ usuario.id }}"
                       data-username="{{ usuario.username }}"
                       data-rol="{{ usuario.rol_id }}"
@@ -94,7 +94,7 @@
                       title="Editar usuario">
                       <i class="menu-icon icon-base ri ri-edit-line"></i>
                     </button>
-                    <button type="button" class="btn btn-icon btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteUserModal" 
+                    <button type="button" class="btn btn-icon btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteUserModal"
                       data-user-id="{{ usuario.id }}"
                       data-username="{{ usuario.username }}"
                       title="Eliminar usuario">
@@ -196,7 +196,7 @@
     </div>
   </div>
 </div>
- 
+
 <!-- Add New User Modal -->
 <div class="modal fade" id="addNewUser" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
@@ -398,9 +398,11 @@
   // Handle delete form submission
   $('#deleteUserForm').on('submit', function(e) {
     e.preventDefault();
-    if (!confirm('¿Está seguro que desea eliminar este usuario? Esta acción no se puede deshacer.')) {
-      return false;
-    }
+
+    // Disable button to prevent double submit
+    const submitBtn = $(this).find('button[type="submit"]');
+    const originalText = submitBtn.html();
+    submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Eliminando...');
 
     const formData = $(this).serialize();
 
@@ -414,10 +416,16 @@
           location.reload(); // Recarga para ver cambios
         } else {
           alert('Error al eliminar el usuario: ' + (response.error || 'Error desconocido'));
+          submitBtn.prop('disabled', false).html(originalText);
         }
       },
-      error: function() {
-        alert('Error de conexión. Por favor intente nuevamente.');
+      error: function(xhr) {
+        let errorMsg = 'Error de conexión';
+        if (xhr.responseJSON && xhr.responseJSON.error) {
+            errorMsg = xhr.responseJSON.error;
+        }
+        alert('Error: ' + errorMsg);
+        submitBtn.prop('disabled', false).html(originalText);
       }
     });
   });
@@ -459,11 +467,11 @@
   // Handle add user form submission
   $('#addUserForm').on('submit', function(e) {
     e.preventDefault();
-    
+
     // Validar que las contraseñas coincidan
     const password = $('input[name="password"]').val();
     const confirmPassword = $('input[name="confirm_password"]').val();
-    
+
     if (password !== confirmPassword) {
       const alert = `
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -492,7 +500,7 @@
       success: function(response) {
              // Cerrar el modal
           $('#addNewUser').modal('hide');
-          
+
           // Mostrar mensaje de éxito
           const alert = `
             <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -501,7 +509,7 @@
             </div>
           `;
           $('.content-wrapper').prepend(alert);
-          
+
           // Recargar la página después de 1.5 segundos
           setTimeout(() => {
             window.location.reload();
@@ -514,7 +522,7 @@
         } else if (xhr.status === 400) {
           errorMessage = 'Error en los datos del formulario. Por favor verifique la información.';
         }
-        
+
         const alert = `
           <div class="alert alert-danger alert-dismissible fade show" role="alert">
             ${errorMessage}

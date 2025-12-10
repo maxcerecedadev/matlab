@@ -1,19 +1,20 @@
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
-from django.db.models import F
-from .models import Mision, Habilidad, IntentoMision, PolyaTrabajoUM, Sumandos
-import logging
-import json
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
+import json
+import logging
+from .models import (
+    Mision, Habilidad, IntentoMision,
+    PolyaTrabajoUM, Sumandos
+)
 from django.utils import timezone
 from apps.biblioteca.models import Biblioteca_Usuario, Biblioteca_Contenido
 
 # Configurar el logger
 logger = logging.getLogger(__name__)
- 
+
 @login_required
 @require_http_methods(["POST"])
 @csrf_exempt
@@ -27,7 +28,7 @@ def guardar_intento_mision(request):
 
         # Validate that the mission exists
         mision = get_object_or_404(Mision, pk=mision_id)
-        
+
         # Create or update the mission attempt
         intento, created = IntentoMision.objects.update_or_create(
             usuario=request.user,
@@ -38,7 +39,7 @@ def guardar_intento_mision(request):
                 'fecha_intento': timezone.now()
             }
         )
-        
+
         return JsonResponse({
             'status': 'success',
             'message': 'Intento de misión guardado correctamente',
@@ -46,7 +47,7 @@ def guardar_intento_mision(request):
             'estado': estado,
             'fecha': intento.fecha_intento.strftime('%Y-%m-%d %H:%M:%S')
         })
-        
+
     except json.JSONDecodeError:
         logger.error("Error al decodificar JSON en guardar_intento_mision")
         return JsonResponse(
@@ -74,7 +75,7 @@ def lista_misiones(request):
             login(request, user)
 
     logger.info("Iniciando vista lista_misiones")
-    
+
     # Obtener todas las misiones activas
     logger.info("Obteniendo misiones activas")
     try:
@@ -149,7 +150,7 @@ def lista_misiones(request):
             except IntentoMision.DoesNotExist:
                 estado = 'pendiente'
                 logger.info("  - Sin intentos previos")
-                
+
             # Agregar el estado como atributo a la misión
             mision.estado_actual = estado
 
@@ -159,7 +160,7 @@ def lista_misiones(request):
             else:
                 mision.bloqueada = ((mision.tipo_operacion or '').strip().lower() not in unlocked_types)
             misiones_con_estado.append(mision)
-        
+
         # Obtener todas las habilidades para los filtros
         try:
             habilidades = Habilidad.objects.all()
@@ -167,33 +168,32 @@ def lista_misiones(request):
         except Exception as e:
             logger.error(f"Error al obtener habilidades: {str(e)}")
             habilidades = []
-         
-        user_role = request.user.rol.tipo
+
         context = {
             'misiones': misiones_con_estado,
-            'habilidades': habilidades, 
+            'habilidades': habilidades,
         }
-        
+
         # Agregar datos de depuración al contexto
         context['debug'] = {
             'misiones_count': len(misiones_con_estado),
             'usuario': request.user.nombre_usuario,
         }
-        
+
         logger.info(f"Contexto preparado con {len(misiones_con_estado)} misiones")
-        
+
     except Exception as e:
         logger.error(f"Error en la vista lista_misiones: {str(e)}", exc_info=True)
         context = {
             'misiones': [],
             'habilidades': [],
-            'error': str(e), 
+            'error': str(e),
         }
-    
+
     # Agregar request al contexto para acceder al usuario en la plantilla
     context['request'] = request
-    
-    
+
+
     return render(request, 'dashboards/misiones.html', context)
 
 
@@ -208,7 +208,7 @@ def obtener_intentos_mision(request, mision_id):
             'fecha_intento',
             'solucion_propuesta',
         'usuario__usuario_id',  # Use double underscore for related field
-        'usuario__nombre_usuario'    
+        'usuario__nombre_usuario'
     )
     return JsonResponse(list(intentos), safe=False)
 
@@ -228,13 +228,58 @@ def actualizar_estado_intento(request, intento_id):
 
 
 @login_required
-@require_http_methods(["GET"]) 
+@require_http_methods(["GET"])
 def obtener_polya_um(request, mision_id):
     try:
         mision = get_object_or_404(Mision, pk=mision_id)
+
+        # Load Teacher's instructions (Key/Structure)
+        try:
+            teacher_polya = json.loads(mision.instrucciones_polya) if mision.instrucciones_polya else {}
+        except json.JSONDecodeError:
+            teacher_polya = {}
+
+        # Default structure from teacher instructions, or fallback
+        response_data = {
+            'Enunciado': teacher_polya.get('Enunciado', mision.descripcion),
+            'Fase 1': teacher_polya.get('Fase 1', {
+                'que_se_pide': '', 'datos_conocidos': '', 'condiciones': ''
+            }),
+            'Fase 2': teacher_polya.get('Fase 2', {
+                'estrategia_principal': '', 'tactica_sugerida': ''
+            }),
+            'Fase 3': teacher_polya.get('Fase 3', {
+                'desarrollo_paso_a_paso': '', 'operacion_matematica': ''
+            }),
+            'Fase 4': teacher_polya.get('Fase 4', {
+                'resultado_final': '', 'pregunta_reflexion': ''
+            })
+        }
+
+        # Merge Student Data if exists
+        # NOTE: If we want to overwrite the "Teacher" placeholders with Student answers
+        # we need to decide if we send BOTH or merged.
+        # The prompt asked to GENERATE the structure. It didn't explicitly say how student data fits.
+        # However, for a GET, we usually want to resume work.
+        # Since the student model uses flat fields, we map them into the structure.
+
         try:
             polya = PolyaTrabajoUM.objects.get(usuario=request.user, mision=mision)
-            data = {
+
+            # Map student flat fields to the phases (overwriting teacher hints if student has data?)
+            # Strategy: Provide student data in a separate 'student_work' key OR overwrite if present.
+            # Given the frontend likely renders this structure, let's map student answers into it
+            # BUT keep teacher's static data (question text, etc) separate if needed?
+            #
+            # Re-reading prompt: "generar la estructura de datos... [CANTIDAD] problemas"
+            # The structure requested is clearly the PROBLEM DEFINITION.
+            # So `obtener_polya_um` should probably return this definition essentially as the "Template".
+            # The frontend then binds the inputs to... where?
+            #
+            # Let's return the `teacher_structure` as the guide/validation data
+            # AND the `student_progress` separately so the frontend knows what to fill.
+
+            response_data['student_progress'] = {
                 'que_se_pide': polya.que_se_pide or '',
                 'datos_conocidos': polya.datos_conocidos or '',
                 'incognitas': polya.incognitas or '',
@@ -249,43 +294,22 @@ def obtener_polya_um(request, mision_id):
                 'revision_verificacion': polya.revision_verificacion or '',
                 'comprobacion_otro_metodo': polya.comprobacion_otro_metodo or '',
                 'conclusion_final': polya.conclusion_final or '',
-                'confianza': polya.confianza if polya.confianza is not None else None,
                 'identificacion_operacion': getattr(polya, 'identificacion_operacion', '') or '',
                 'por_que_esa_operacion': getattr(polya, 'por_que_esa_operacion', '') or '',
-                'sumandos': list(Sumandos.objects.filter(polya_um_id=polya).values_list('sumando', flat=True)),
-                'solucion_correcta': mision.solucion_correcta or '',
             }
-            return JsonResponse({'status': 'success', 'data': data})
+
         except PolyaTrabajoUM.DoesNotExist:
-            data = {
-                'que_se_pide': '',
-                'datos_conocidos': '',
-                'incognitas': '',
-                'representacion': '',
-                'estrategia_principal': '',
-                'tactica_similar': False,
-                'tactica_descomponer': False,
-                'tactica_ecuaciones': False,
-                'tactica_formula': False,
-                'desarrollo': '',
-                'resultados_intermedios': '',
-                'revision_verificacion': '',
-                'comprobacion_otro_metodo': '',
-                'conclusion_final': '',
-                'confianza': None,
-                'identificacion_operacion': '',
-                'por_que_esa_operacion': '',
-                'sumandos': [],
-                'solucion_correcta': mision.solucion_correcta or '',
-            }
-            return JsonResponse({'status': 'success', 'data': data})
+            response_data['student_progress'] = {}
+
+        return JsonResponse({'status': 'success', 'data': response_data})
+
     except Exception as e:
         logger.error(f"Error en obtener_polya_um: {str(e)}", exc_info=True)
         return JsonResponse({'status': 'error', 'message': 'Error interno del servidor'}, status=500)
 
 
 @login_required
-@require_http_methods(["GET"]) 
+@require_http_methods(["GET"])
 def obtener_alternativas_mision(request, mision_id):
     try:
         mision = get_object_or_404(Mision, pk=mision_id)
@@ -305,7 +329,7 @@ def obtener_alternativas_mision(request, mision_id):
 
 
 @login_required
-@require_http_methods(["POST"]) 
+@require_http_methods(["POST"])
 @csrf_exempt
 def guardar_polya_um(request, mision_id):
     try:
@@ -363,7 +387,7 @@ def guardar_polya_um(request, mision_id):
 
 
 @login_required
-@require_http_methods(["GET"]) 
+@require_http_methods(["GET"])
 def obtener_polya_um_estudiante(request, mision_id, usuario_id):
     try:
         try:

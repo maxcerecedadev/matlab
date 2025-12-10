@@ -26,19 +26,19 @@ urlpatterns = [
     path("admin/", admin.site.urls),
 
     path("", home_redirect, name="home_redirect"),
-    
+
     # Dashboard urls
-    path("welcome", include("apps.dashboards.urls")),
+    path("welcome/", include("apps.dashboards.urls")),
 
     # layouts urls
     path("", include("apps.layouts.urls")),
 
     # Auth urls
     path("", include("apps.authentication.urls")),
- 
+
     # Misiones urls
     path('misiones/', include('apps.misiones.urls', namespace='misiones')),
- 
+
     # Biblioteca urls
     path('biblioteca/', include('apps.biblioteca.urls', namespace='biblioteca')),
 ]

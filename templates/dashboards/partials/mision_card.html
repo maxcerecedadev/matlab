@@ -1,23 +1,21 @@
 <div class="col-12 mision-card" data-mision-id="{{ mision.mision_id }}" data-bloqueada="{% if mision.bloqueada %}true{% else %}false{% endif %}" data-operacion="{{ mision.tipo_operacion|lower }}" {% if not show_mission %}style="display: none;"{% endif %}>
     <div class="card h-100">
         <div class="card-body">
+            <!-- Header (Title, etc) - Unchanged -->
             <div class="d-flex justify-content-between align-items-start">
                 <div class="d-flex align-items-center">
                     <div>
                         <h5 class="mb-0">{{ mision.titulo }} {% if mision.tipo_operacion %}<span class="badge bg-label-primary ms-2 text-uppercase">
-                            {% if mision.tipo_operacion == 'suma' %}
-                            <i class="ri-add-line me-1"></i>
-                            {% elif mision.tipo_operacion == 'resta' %}
-                            <i class="ri-subtract-line me-1"></i>
-                            {% elif mision.tipo_operacion == 'multiplicacion' %}
-                            <i class="ri-close-line me-1"></i>
-                            {% elif mision.tipo_operacion == 'division' %}
-                            <i class="ri-divide-line me-1"></i>
+                            {% if mision.tipo_operacion == 'suma' %}<i class="ri-add-line me-1"></i>
+                            {% elif mision.tipo_operacion == 'resta' %}<i class="ri-subtract-line me-1"></i>
+                            {% elif mision.tipo_operacion == 'multiplicacion' %}<i class="ri-close-line me-1"></i>
+                            {% elif mision.tipo_operacion == 'division' %}<i class="ri-divide-line me-1"></i>
                             {% endif %}
                             {{ mision.tipo_operacion }}</span>{% endif %}</h5>
                         <small class="text-muted">#MIS-{{ mision.mision_id|stringformat:"03d" }}</small>
                     </div>
                 </div>
+                <!-- Dropdown Menu -->
                 <div class="dropdown">
                     <button type="button" class="btn p-0" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="ti ti-dots-vertical"></i>
@@ -26,11 +24,11 @@
                         <li>
                             {% if user.rol.tipo != 'Profesor' and mision.bloqueada %}
                             <span class="dropdown-item text-muted d-flex align-items-center py-2 px-3 rounded-2 border-0">
-                                
+
                                 <div class="bg-secondary-subtle rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
                                     <i class="ti ti-lock text-secondary"></i>
                                 </div>
-                                Bloqueada. Para desbloquear esta misión, debe ver al menos un contenido de la operación basica correspondiente. 
+                                Bloqueada. Para desbloquear esta misión, debe ver al menos un contenido de la operación basica correspondiente.
                                 <br>
                                 Puede encontrar dicho contenido en el módulo de biblioteca
                             </span>
@@ -57,14 +55,14 @@
                     </ul>
                 </div>
             </div>
-            
-            <p class="mb-3">{{ mision.descripcion|default:"Sin descripción" }}</p>
-            </div>
-            
+
+            <p class="mb-3" id="mision-enunciado-{{ mision.mision_id }}">{{ mision.descripcion|default:"Sin descripción" }}</p>
+
+            <!-- Status Badges -->
             <div class="d-flex justify-content-between align-items-center" id="status-container-{{ mision.mision_id }}" {% if user.rol.tipo == 'Profesor' %}style="display:none;"{% endif %}>
                 {% if user.rol.tipo != 'Profesor' %}
                 <div class="d-flex align-items-center">
-                    <span id="status-badge-{{ mision.mision_id }}" class="badge 
+                    <span id="status-badge-{{ mision.mision_id }}" class="badge
                         {% if mision.bloqueada %}bg-label-secondary
                         {% elif mision.estado_actual == 'completado' %}bg-label-success
                         {% elif mision.estado_actual == 'en_progreso' %}bg-label-info
@@ -77,36 +75,41 @@
                         {% elif mision.estado_actual == 'rechazado' %}Incorrecto
                         {% else %}Pendiente
                         {% endif %}
-                    </span> 
-                </div> 
+                    </span>
+                </div>
                 {% endif %}
             </div>
             <hr class="my-3">
+
+            <!-- Polya Method Container -->
             <div id="polya-container-{{ mision.mision_id }}" {% if user.rol.tipo == 'Profesor' %}style="display:none;"{% endif %} {% if mision.bloqueada and user.rol.tipo != 'Profesor' %}style="position: relative;"{% endif %}>
+
             <div class="mb-2 d-flex align-items-center">
                 <i class="ri-brain-line text-primary me-2"></i>
                 <h6 class="mb-0">Método de Pólya</h6>
             </div>
-            {% if mision.bloqueada and user.rol.tipo != 'Profesor' %}
-            <div class="alert alert-secondary mb-2">
-              Esta misión está bloqueada. Ve a <strong>Biblioteca</strong> y confirma el contenido correspondiente para habilitar el método de Pólya.
-            </div>
-            <div class="position-absolute top-0 start-0 w-100 h-100" style="background: rgba(255,255,255,0.6); z-index: 3;"></div>
-            {% endif %}
+
+            <!-- Progress Bar -->
             <div class="progress mb-3" style="height: 8px;">
                 <div id="progress-bar-{{ mision.mision_id }}" class="progress-bar bg-success" role="progressbar"
                      style="width: {% if mision.estado_actual == 'completado' %}100{% elif mision.estado_actual == 'en_progreso' %}60{% elif mision.estado_actual == 'rechazado' %}25{% else %}10{% endif %}%"
                      aria-valuenow="{% if mision.estado_actual == 'completado' %}100{% elif mision.estado_actual == 'en_progreso' %}60{% elif mision.estado_actual == 'rechazado' %}25{% else %}10{% endif %}"
                      aria-valuemin="0" aria-valuemax="100"></div>
             </div>
-                <div class="d-flex justify-content-end mb-2">
+
+            <!-- Save Button -->
+            <div class="d-flex justify-content-end mb-2">
                 {% if user.rol.tipo != 'Profesor' %}
                 <button type="button" class="btn btn-sm btn-primary" id="btn-polya-save-{{ mision.mision_id }}">
-                    <i class="ti ti-device-floppy me-1"></i> Guardar Pólya (1–4)
+                    <i class="ti ti-device-floppy me-1"></i> Guardar Avance
                 </button>
                 {% endif %}
-                </div>
+            </div>
+
+            <!-- Accordion -->
             <div class="accordion accordion-flush" id="polyaAccordion-{{ mision.mision_id }}">
+
+                <!-- STEP 1: COMPRENDER -->
                 <div class="accordion-item">
                     <h2 class="accordion-header" id="polyaHeading1-{{ mision.mision_id }}">
                         <button class="accordion-button" type="button" data-bs-toggle="collapse"
@@ -116,43 +119,42 @@
                         </button>
                     </h2>
                     <div id="polyaStep1-{{ mision.mision_id }}" class="accordion-collapse collapse show"
-                         aria-labelledby="polyaHeading1-{{ mision.mision_id }}" data-bs-parent="#polyaAccordion-{{ mision.mision_id }}">
+                         data-bs-parent="#polyaAccordion-{{ mision.mision_id }}">
                         <div class="accordion-body">
                             <div class="row g-3">
+                                <!-- Enunciado (Teacher) -->
                                 <div class="col-12">
-                                    <label class="form-label">Descripción de la misión</label>
-                                    <div class="alert alert-info py-2 px-3 mb-0">
-                                        {{ mision.descripcion|default:"Sin descripción" }}
+                                    <div class="alert alert-primary d-flex align-items-center" role="alert">
+                                        <i class="ti ti-info-circle me-2"></i>
+                                        <div id="polya-hint-enunciado-{{ mision.mision_id }}" class="small">
+                                            {{ mision.descripcion }}
+                                        </div>
                                     </div>
                                 </div>
+                                <!-- Que se pide -->
                                 <div class="col-12">
-                                    <label class="form-label">Identificación de la operación</label>
-                                    <select class="form-select" name="polya_identificacion_operacion_{{ mision.mision_id }}" {% if user.rol.tipo == 'Profesor' %}disabled readonly{% endif %}>
-                                        <option value="" selected>Selecciona una operación</option>
-                                        <option value="suma">Suma</option>
-                                        <option value="resta">Resta</option>
-                                        <option value="multiplicacion">Multiplicación</option>
-                                        <option value="division">División</option>
-                                    </select>
+                                    <label class="form-label">¿Qué se pide?</label>
+                                    <input type="text" class="form-control" name="polya_que_se_pide_{{ mision.mision_id }}" placeholder="Ej: Calcular la cantidad total de..." {% if user.rol.tipo == 'Profesor' %}disabled readonly{% endif %}>
+                                    <div class="form-text text-muted small" id="polya-hint-quesepide-{{ mision.mision_id }}"></div>
                                 </div>
-                                <div class="col-12">
-                                    <label class="form-label">¿Por qué esa operación?</label>
-                                    <textarea class="form-control" rows="2" name="polya_por_que_operacion_{{ mision.mision_id }}" placeholder="Explica por qué elegiste esa operación" {% if user.rol.tipo == 'Profesor' %}disabled readonly{% endif %}></textarea>
+                                <!-- Datos Conocidos -->
+                                <div class="col-md-6">
+                                    <label class="form-label">Datos Conocidos</label>
+                                    <textarea class="form-control" rows="2" name="polya_datos_{{ mision.mision_id }}" placeholder="Ej: Tengo 5 manzanas..." {% if user.rol.tipo == 'Profesor' %}disabled readonly{% endif %}></textarea>
+                                    <div class="form-text text-muted small" id="polya-hint-datos-{{ mision.mision_id }}"></div>
                                 </div>
-                                <div class="col-12">
-                                <label class="form-label mb-1">Numeros de la operación</label>
-                                    <small class="text-muted d-block mb-2">Agrega los números que intervienen en la operación (por ejemplo, 4 y 5 si es 4 + 5).</small>
-                                    <div id="sumandos-container-{{ mision.mision_id }}"></div>
-                                    {% if user.rol.tipo != 'Profesor' %}
-                                    <button type="button" class="btn btn-sm btn-outline-primary mt-2" id="btn-add-sumando-{{ mision.mision_id }}">
-                                        <i class="ti ti-plus me-1"></i> Agregar número
-                                    </button>
-                                    {% endif %}
+                                <!-- Condiciones (New) -->
+                                <div class="col-md-6">
+                                    <label class="form-label">Condiciones / Restricciones</label>
+                                    <textarea class="form-control" rows="2" name="polya_condiciones_{{ mision.mision_id }}" placeholder="Ej: No puedo gastar más de..." {% if user.rol.tipo == 'Profesor' %}disabled readonly{% endif %}></textarea>
+                                    <div class="form-text text-muted small" id="polya-hint-condiciones-{{ mision.mision_id }}"></div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+
+                <!-- STEP 2: PLANIFICAR -->
                 <div class="accordion-item">
                     <h2 class="accordion-header" id="polyaHeading2-{{ mision.mision_id }}">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
@@ -162,41 +164,57 @@
                         </button>
                     </h2>
                     <div id="polyaStep2-{{ mision.mision_id }}" class="accordion-collapse collapse"
-                         aria-labelledby="polyaHeading2-{{ mision.mision_id }}" data-bs-parent="#polyaAccordion-{{ mision.mision_id }}">
+                         data-bs-parent="#polyaAccordion-{{ mision.mision_id }}">
                         <div class="accordion-body">
                             <div class="row g-3">
+                                <!-- Estrategia -->
                                 <div class="col-12">
                                     <label class="form-label">Estrategia principal</label>
-                                    <textarea class="form-control" rows="3" name="polya_estrategia_{{ mision.mision_id }}" placeholder="Describe el plan general para resolver la misión" {% if user.rol.tipo == 'Profesor' %}disabled readonly{% endif %}></textarea>
+                                    <textarea class="form-control" rows="3" name="polya_estrategia_{{ mision.mision_id }}" placeholder="¿Cómo vas a resolverlo? Ej: Sumar las partes..." {% if user.rol.tipo == 'Profesor' %}disabled readonly{% endif %}></textarea>
+                                    <div class="form-text text-muted small" id="polya-hint-estrategia-{{ mision.mision_id }}"></div>
+                                </div>
+                                <!-- Tactica Sugerida (Teacher Hint Display) -->
+                                <div class="col-12">
+                                    <div class="alert alert-warning d-flex align-items-center" role="alert" id="polya-box-tactica-{{ mision.mision_id }}" style="display:none;">
+                                        <i class="ti ti-bulb me-2"></i>
+                                        <div>
+                                            <strong>Pista (Táctica Sugerida):</strong>
+                                            <span id="polya-hint-tactica-{{ mision.mision_id }}"></span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+
+                <!-- STEP 3: EJECUTAR -->
                 <div class="accordion-item">
                     <h2 class="accordion-header" id="polyaHeading3-{{ mision.mision_id }}">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                                 data-bs-target="#polyaStep3-{{ mision.mision_id }}" aria-expanded="false"
                                 aria-controls="polyaStep3-{{ mision.mision_id }}">
-                            <span class="me-2 badge bg-label-warning">3</span> Ejecutar la operación
+                            <span class="me-2 badge bg-label-warning">3</span> Ejecutar el plan
                         </button>
                     </h2>
                     <div id="polyaStep3-{{ mision.mision_id }}" class="accordion-collapse collapse"
-                         aria-labelledby="polyaHeading3-{{ mision.mision_id }}" data-bs-parent="#polyaAccordion-{{ mision.mision_id }}">
+                         data-bs-parent="#polyaAccordion-{{ mision.mision_id }}">
                         <div class="accordion-body">
                             <div class="row g-3">
+                                <!-- Desarrollo -->
                                 <div class="col-12">
-                                    <label class="form-label">Desarrollo</label>
-                                    <textarea class="form-control" rows="4" name="polya_desarrollo_{{ mision.mision_id }}" placeholder="Escribe paso a paso cómo resuelves la misión" {% if user.rol.tipo == 'Profesor' %}disabled readonly{% endif %}></textarea>
+                                    <label class="form-label">Desarrollo paso a paso</label>
+                                    <textarea class="form-control" rows="4" name="polya_desarrollo_{{ mision.mision_id }}" placeholder="Escribe aquí tus cálculos y razonamiento..." {% if user.rol.tipo == 'Profesor' %}disabled readonly{% endif %}></textarea>
+                                    <div class="form-text text-muted small" id="polya-hint-desarrollo-{{ mision.mision_id }}"></div>
                                 </div>
+                                <!-- Operacion (Legacy/Calc) -->
                                 <div class="col-12">
-                                    <label class="form-label mb-1">Calculadora de práctica</label>
-                                    <small class="text-muted d-block mb-2">Usa estos campos para practicar los cálculos.</small>
+                                    <label class="form-label">Calculadora / Operaciones Auxiliares</label>
                                     <div class="row g-2 align-items-end">
                                         <div class="col-sm-8">
                                             <div id="polya-calc-inputs-{{ mision.mision_id }}">
-                                                <input type="number" class="form-control mb-2" name="polya_calc_num_{{ mision.mision_id }}" placeholder="Número 1" {% if user.rol.tipo == 'Profesor' %}disabled readonly{% endif %}>
-                                                <input type="number" class="form-control mb-2" name="polya_calc_num_{{ mision.mision_id }}" placeholder="Número 2" {% if user.rol.tipo == 'Profesor' %}disabled readonly{% endif %}>
+                                                <input type="number" class="form-control mb-2" name="polya_calc_num_{{ mision.mision_id }}" placeholder="Número" {% if user.rol.tipo == 'Profesor' %}disabled readonly{% endif %}>
+                                                <input type="number" class="form-control mb-2" name="polya_calc_num_{{ mision.mision_id }}" placeholder="Número" {% if user.rol.tipo == 'Profesor' %}disabled readonly{% endif %}>
                                             </div>
                                             {% if user.rol.tipo != 'Profesor' %}
                                             <button type="button" class="btn btn-sm btn-outline-primary" id="btn-add-polya-calc-{{ mision.mision_id }}">
@@ -207,49 +225,21 @@
                                         <div class="col-sm-4">
                                             {% if user.rol.tipo != 'Profesor' %}
                                             <button type="button" class="btn btn-outline-secondary w-100 mb-2" id="btn-polya-calc-{{ mision.mision_id }}" data-operacion="{{ mision.tipo_operacion }}">
-                                                <i class="ti ti-equal me-1"></i> Calcular resultado
+                                                <i class="ti ti-equal me-1"></i> Calcular
                                             </button>
                                             {% endif %}
                                             <div class="small text-muted">Resultado: <span id="polya-calc-result-{{ mision.mision_id }}">—</span></div>
                                         </div>
                                     </div>
+                                    <div class="form-text text-muted small" id="polya-hint-operacion-{{ mision.mision_id }}"></div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+
+                <!-- STEP 4: VERIFICAR -->
                 <div class="accordion-item">
-                    {% if user.rol.tipo == 'Profesor' %}
-                    <h2 class="accordion-header" id="polyaHeading4-{{ mision.mision_id }}">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                data-bs-target="#polyaStep4-{{ mision.mision_id }}" aria-expanded="false"
-                                aria-controls="polyaStep4-{{ mision.mision_id }}">
-                            <span class="me-2 badge bg-label-success">4</span> Verificar la respuesta
-                        </button>
-                    </h2>
-                    <div id="polyaStep4-{{ mision.mision_id }}" class="accordion-collapse collapse"
-                         aria-labelledby="polyaHeading4-{{ mision.mision_id }}" data-bs-parent="#polyaAccordion-{{ mision.mision_id }}">
-                        <div class="accordion-body">
-                            <div class="alert alert-secondary mb-3" id="polya-solucion-box-{{ mision.mision_id }}" style="display:none;">
-                                <div class="d-flex align-items-center mb-1">
-                                    <i class="ti ti-user-check me-2"></i>
-                                    <strong>Solución propuesta del estudiante seleccionado</strong>
-                                </div>
-                                <div id="polya-solucion-text-{{ mision.mision_id }}" class="bg-light rounded p-2"></div>
-                            </div>
-                            <div class="row g-3">
-                                <div class="col-12">
-                                    <label class="form-label">Revisión / verificación</label>
-                                    <div class="form-control-plaintext small border rounded p-2 bg-light" id="polya-revision-text-{{ mision.mision_id }}"></div>
-                                </div>
-                                <div class="col-12">
-                                    <label class="form-label">Solución correcta de la misión</label>
-                                    <div class="alert alert-success py-2 px-3 mb-0" id="polya-solucion-correcta-{{ mision.mision_id }}">—</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {% else %}
                     <h2 class="accordion-header" id="polyaHeading4-{{ mision.mision_id }}">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                                 data-bs-target="#polyaStep4-{{ mision.mision_id }}" aria-expanded="false"
@@ -258,26 +248,55 @@
                         </button>
                     </h2>
                     <div id="polyaStep4-{{ mision.mision_id }}" class="accordion-collapse collapse"
-                         aria-labelledby="polyaHeading4-{{ mision.mision_id }}" data-bs-parent="#polyaAccordion-{{ mision.mision_id }}">
+                         data-bs-parent="#polyaAccordion-{{ mision.mision_id }}">
                         <div class="accordion-body">
+                             <!-- Student Solution (Teacher View) -->
+                             {% if user.rol.tipo == 'Profesor' %}
+                             <div class="alert alert-secondary mb-3" id="polya-solucion-box-{{ mision.mision_id }}" style="display:none;">
+                                <div class="d-flex align-items-center mb-1">
+                                    <i class="ti ti-user-check me-2"></i>
+                                    <strong>Solución del estudiante</strong>
+                                </div>
+                                <div id="polya-solucion-text-{{ mision.mision_id }}" class="bg-light rounded p-2"></div>
+                            </div>
+                            {% endif %}
+
                             <div class="row g-3">
+                                <!-- Resultado Final -->
+                                <div class="col-md-6">
+                                    <label class="form-label">Mi Resultado Final</label>
+                                    <input type="text" class="form-control" name="polya_mi_resultado_{{ mision.mision_id }}" id="polya-mi-resultado-{{ mision.mision_id }}" placeholder="Respuesta final" {% if user.rol.tipo == 'Profesor' %}disabled readonly{% endif %}>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Solución Esperada (Key)</label>
+                                    <div class="alert alert-success py-2 px-3 mb-0" id="polya-solucion-correcta-{{ mision.mision_id }}">
+                                        <i class="ti ti-lock me-1"></i> Oculta
+                                    </div>
+                                </div>
+
+                                <!-- Revision / Verificacion -->
                                 <div class="col-12">
-                                    <label class="form-label">Revisión / verificación</label>
-                                    <textarea class="form-control form-control-sm" rows="2" name="polya_revision_verificacion_{{ mision.mision_id }}" placeholder="Comprueba si tu resultado tiene sentido"></textarea>
+                                    <label class="form-label">Revisión</label>
+                                    <textarea class="form-control" rows="2" name="polya_revision_verificacion_{{ mision.mision_id }}" placeholder="¿Por qué crees que tu respuesta es correcta?" {% if user.rol.tipo == 'Profesor' %}disabled readonly{% endif %}></textarea>
                                 </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Mi resultado</label>
-                                    <input type="text" class="form-control form-control-sm" id="polya-mi-resultado-{{ mision.mision_id }}" placeholder="Escribe aquí tu resultado final">
+
+                                <!-- Pregunta Reflexion (Teacher) -->
+                                <div class="col-12">
+                                    <div class="alert alert-info d-flex align-items-center" role="alert" id="polya-box-reflexion-{{ mision.mision_id }}" style="display:none;">
+                                        <i class="ti ti-question-mark me-2"></i>
+                                        <div>
+                                            <strong>Pregunta de Reflexión:</strong>
+                                            <span id="polya-hint-reflexion-{{ mision.mision_id }}"></span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Solución correcta de la misión</label>
-                                    <div class="alert alert-success py-2 px-3 mb-0" id="polya-solucion-correcta-{{ mision.mision_id }}">—</div>
-                                </div>
+
                             </div>
                         </div>
                     </div>
-                    {% endif %}
                 </div>
+
+            </div> <!-- End Accordion -->
             </div>
         </div>
     </div>
@@ -289,86 +308,52 @@
   var guardarUrl = "{% url 'misiones:guardar_polya_um' mision.mision_id %}";
   var esProfesor = {% if user.rol.tipo == 'Profesor' %}true{% else %}false{% endif %};
   var bloqueada = {% if mision.bloqueada %}true{% else %}false{% endif %};
-  if (bloqueada && !esProfesor) {
-    // Evita inicializar listeners/requests cuando la misión está bloqueada para el estudiante
-    return;
-  }
+
+  if (bloqueada && !esProfesor) return;
+
   var btn = document.getElementById('btn-polya-save-' + mid);
+
+  // Inputs
   function getByName(base){ return document.querySelector('[name="' + base + '_' + mid + '"]'); }
   var q = getByName('polya_que_se_pide');
   var d = getByName('polya_datos');
-  var inc = getByName('polya_incognitas');
-  var rep = getByName('polya_representacion');
+  var cond = getByName('polya_condiciones');
   var est = getByName('polya_estrategia');
   var des = getByName('polya_desarrollo');
-  var resInt = getByName('polya_resultados_intermedios');
-  var tac1 = document.getElementById('tac1-' + mid);
-  var tac2 = document.getElementById('tac2-' + mid);
-  var tac3 = document.getElementById('tac3-' + mid);
-  var tac4 = document.getElementById('tac4-' + mid);
+  var miRes = getByName('polya_mi_resultado'); // Using flat text input
   var rev = getByName('polya_revision_verificacion');
-  var comp = getByName('polya_comprobacion_otro_metodo');
-  var concl = getByName('polya_conclusion_final');
-  var conf = getByName('polya_confianza');
 
-  var identOp = getByName('polya_identificacion_operacion');
-  var porQueOp = getByName('polya_por_que_operacion');
-  var sumandosContainer = document.getElementById('sumandos-container-' + mid);
-  var addSumandoBtn = document.getElementById('btn-add-sumando-' + mid);
-  var solucionCorrectaBox = document.getElementById('polya-solucion-correcta-' + mid);
+  // UI Elements for Hints (Teacher Data)
+  var hintEnunciado = document.getElementById('polya-hint-enunciado-' + mid);
+  var hintQueSePide = document.getElementById('polya-hint-quesepide-' + mid);
+  var hintDatos = document.getElementById('polya-hint-datos-' + mid);
+  var hintCondiciones = document.getElementById('polya-hint-condiciones-' + mid);
+  var hintEstrategia = document.getElementById('polya-hint-estrategia-' + mid);
+  var hintDesarrollo = document.getElementById('polya-hint-desarrollo-' + mid);
+  var hintOperacion = document.getElementById('polya-hint-operacion-' + mid);
+
+  var boxTactica = document.getElementById('polya-box-tactica-' + mid);
+  var hintTactica = document.getElementById('polya-hint-tactica-' + mid);
+  var boxReflexion = document.getElementById('polya-box-reflexion-' + mid);
+  var hintReflexion = document.getElementById('polya-hint-reflexion-' + mid);
+  var solCorrectaBox = document.getElementById('polya-solucion-correcta-' + mid);
+
+  // Calculator Logic
   var calcInputsContainer = document.getElementById('polya-calc-inputs-' + mid);
   var addCalcInputBtn = document.getElementById('btn-add-polya-calc-' + mid);
   var calcResult = document.getElementById('polya-calc-result-' + mid);
   var calcBtn = document.getElementById('btn-polya-calc-' + mid);
-
-  function getSumandosFromInputs(){
-    if (!sumandosContainer) return [];
-    var inputs = sumandosContainer.querySelectorAll('input[name="polya_sumando_' + mid + '"]');
-    var items = [];
-    inputs.forEach(function(inp){
-      var v = (inp.value || '').trim();
-      if (v) items.push(v);
-    });
-    return items;
-  }
-
-  function renderSumandos(values){
-    if (!sumandosContainer) return;
-    sumandosContainer.innerHTML = '';
-    var list = (Array.isArray(values) && values.length) ? values : [''];
-    list.forEach(function(v){
-      var group = document.createElement('div');
-      group.className = 'mb-2';
-      var input = document.createElement('input');
-      input.type = 'text';
-      input.className = 'form-control';
-      input.name = 'polya_sumando_' + mid;
-      input.placeholder = 'Ingresa un número o sumando';
-      input.value = v || '';
-      group.appendChild(input);
-      sumandosContainer.appendChild(group);
-    });
-  }
-
-  if (addSumandoBtn && sumandosContainer){
-    addSumandoBtn.addEventListener('click', function(){
-      var actuales = getSumandosFromInputs();
-      actuales.push('');
-      renderSumandos(actuales);
-    });
-  }
 
   function getCalcNumbers(){
     if (!calcInputsContainer) return [];
     var inputs = calcInputsContainer.querySelectorAll('input[name="polya_calc_num_' + mid + '"]');
     var nums = [];
     inputs.forEach(function(inp){
-      var v = parseFloat(inp.value);
-      if (!isNaN(v)) nums.push(v);
+        var v = parseFloat(inp.value);
+        if (!isNaN(v)) nums.push(v);
     });
     return nums;
   }
-
   function addCalcInput(value){
     if (!calcInputsContainer || esProfesor) return;
     var input = document.createElement('input');
@@ -379,44 +364,24 @@
     input.value = (value !== undefined && value !== null) ? value : '';
     calcInputsContainer.appendChild(input);
   }
-
-  if (addCalcInputBtn && calcInputsContainer && !esProfesor){
-    addCalcInputBtn.addEventListener('click', function(){
-      addCalcInput('');
-    });
+  if (addCalcInputBtn && !esProfesor){
+    addCalcInputBtn.addEventListener('click', function(){ addCalcInput(''); });
   }
-
-  if (calcBtn && calcInputsContainer && calcResult){
+  if (calcBtn && calcResult){
     calcBtn.addEventListener('click', function(){
       var nums = getCalcNumbers();
-      if (nums.length < 2){
-        calcResult.textContent = '—';
-        return;
-      }
-      var op = (identOp && identOp.value) ? (identOp.value || '').toLowerCase() : ((calcBtn.getAttribute('data-operacion') || 'suma').toLowerCase());
+      if (nums.length < 2){ calcResult.textContent = '—'; return; }
+      var op = (calcBtn.getAttribute('data-operacion') || 'suma').toLowerCase();
       var r;
       switch(op){
-        case 'suma':
-          r = nums.reduce(function(acc, n){ return acc + n; }, 0);
-          break;
-        case 'resta':
-          r = nums.slice(1).reduce(function(acc, n){ return acc - n; }, nums[0]);
-          break;
-        case 'multiplicacion':
-          r = nums.reduce(function(acc, n){ return acc * n; }, 1);
-          break;
+        case 'suma': r = nums.reduce((a,b)=>a+b, 0); break;
+        case 'resta': r = nums.slice(1).reduce((a,b)=>a-b, nums[0]); break;
+        case 'multiplicacion': r = nums.reduce((a,b)=>a*b, 1); break;
         case 'division':
-          r = nums[0];
-          for (var i = 1; i < nums.length; i++){
-            if (nums[i] === 0){
-              calcResult.textContent = 'No permitido';
-              return;
-            }
-            r = r / nums[i];
-          }
-          break;
-        default:
-          r = nums.reduce(function(acc, n){ return acc + n; }, 0);
+            r = nums[0];
+            for(var i=1;i<nums.length;i++){ if(nums[i]===0){ calcResult.textContent='Err'; return; } r/=nums[i]; }
+            break;
+        default: r = nums.reduce((a,b)=>a+b, 0);
       }
       calcResult.textContent = isNaN(r) ? '—' : r;
     });
@@ -428,26 +393,50 @@
         .then(function(r){ return r.json(); })
         .then(function(j){
           if (j && j.status === 'success' && j.data){
-            var data = j.data;
-            if (q) q.value = data.que_se_pide || '';
-            if (d) d.value = data.datos_conocidos || '';
-            if (inc) inc.value = data.incognitas || '';
-            if (rep) rep.value = data.representacion || '';
-            if (est) est.value = data.estrategia_principal || '';
-            if (des) des.value = data.desarrollo || '';
-            if (resInt) resInt.value = data.resultados_intermedios || '';
-            if (tac1) tac1.checked = !!data.tactica_similar;
-            if (tac2) tac2.checked = !!data.tactica_descomponer;
-            if (tac3) tac3.checked = !!data.tactica_ecuaciones;
-            if (tac4) tac4.checked = !!data.tactica_formula;
-            if (rev) rev.value = data.revision_verificacion || '';
-            if (comp) comp.value = data.comprobacion_otro_metodo || '';
-            if (concl) concl.value = data.conclusion_final || '';
-            if (conf) conf.value = (data.confianza !== null && data.confianza !== undefined) ? data.confianza : '';
-            if (identOp) identOp.value = data.identificacion_operacion || '';
-            if (porQueOp) porQueOp.value = data.por_que_esa_operacion || '';
-            if (sumandosContainer) renderSumandos(data.sumandos || []);
-            if (solucionCorrectaBox) solucionCorrectaBox.textContent = data.solucion_correcta || '—';
+            var serverData = j.data;
+
+            // 1. Populate Teacher Hints / Structure
+            if(hintEnunciado) hintEnunciado.textContent = serverData['Enunciado'] || '...';
+
+            var f1 = serverData['Fase 1'] || {};
+            // if(hintQueSePide && f1.que_se_pide) hintQueSePide.textContent = "Pista: " + f1.que_se_pide;
+            // if(hintDatos && f1.datos_conocidos) hintDatos.textContent = "Pista: " + f1.datos_conocidos;
+            // if(hintCondiciones && f1.condiciones) hintCondiciones.textContent = "Pista: " + f1.condiciones;
+
+            var f2 = serverData['Fase 2'] || {};
+            if(f2.tactica_sugerida && boxTactica && hintTactica) {
+                hintTactica.textContent = f2.tactica_sugerida;
+                boxTactica.style.display = 'flex';
+            }
+
+            var f3 = serverData['Fase 3'] || {};
+            if(f3.operacion_matematica && hintOperacion) hintOperacion.textContent = "Operación esperada: " + f3.operacion_matematica;
+
+            var f4 = serverData['Fase 4'] || {};
+            if(solCorrectaBox) solucionCorrectaBox.textContent = f4.resultado_final || '—';
+            if(f4.pregunta_reflexion && boxReflexion && hintReflexion) {
+                hintReflexion.textContent = f4.pregunta_reflexion;
+                boxReflexion.style.display = 'flex';
+            }
+
+            // 2. Populate Student Progress
+            var sp = serverData['student_progress'] || {};
+            if(q) q.value = sp.que_se_pide || '';
+            if(d) d.value = sp.datos_conocidos || '';
+            // New fields not yet in model might need standard field mapping
+            // Convention: We will save 'condiciones' into 'incognitas' or custom JSON?
+            // For now, let's assume we map to existing model fields roughly or leave them local.
+            // Actually, safe bet: map to existing model fields where possible.
+            // conditions -> incognitas (as a fallback storage?) No, let's put it in incognitas.
+            if(cond) cond.value = sp.incognitas || '';
+
+            if(est) est.value = sp.estrategia_principal || '';
+            if(des) des.value = sp.desarrollo || '';
+            if(miRes && sp.conclusion_final) miRes.value = sp.conclusion_final; // Mapping conclusion to result
+            if(rev) rev.value = sp.revision_verificacion || '';
+
+            // Calc defaults
+            // if(sp.sumandos) ...
           }
         });
     } catch(e) {}
@@ -460,23 +449,16 @@
       var payload = {
         que_se_pide: q ? q.value : null,
         datos_conocidos: d ? d.value : null,
-        incognitas: inc ? inc.value : null,
-        representacion: rep ? rep.value : null,
+        // Mapping NEW inputs to OLD/EXISTING model fields to avoid DB migration errors
+        incognitas: cond ? cond.value : null,  // Storing Conditions in Incognitas column
         estrategia_principal: est ? est.value : null,
-        tactica_similar: tac1 ? tac1.checked : false,
-        tactica_descomponer: tac2 ? tac2.checked : false,
-        tactica_ecuaciones: tac3 ? tac3.checked : false,
-        tactica_formula: tac4 ? tac4.checked : false,
         desarrollo: des ? des.value : null,
-        resultados_intermedios: resInt ? resInt.value : null,
+        conclusion_final: miRes ? miRes.value : null, // Storing Result in Conclusion column
         revision_verificacion: rev ? rev.value : null,
-        comprobacion_otro_metodo: comp ? comp.value : null,
-        conclusion_final: concl ? concl.value : null,
-        confianza: conf && conf.value !== '' ? parseInt(conf.value, 10) : null,
-        identificacion_operacion: identOp ? identOp.value : null,
-        por_que_esa_operacion: porQueOp ? porQueOp.value : null,
-        sumandos: getSumandosFromInputs()
+        // Others null
+        representacion: null, results_intermedios: null,
       };
+
       fetch(guardarUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -486,21 +468,23 @@
       .then(function(r){ return r.json(); })
       .then(function(j){
         if (j && j.status === 'success'){
-          btn.classList.remove('btn-primary');
-          btn.classList.add('btn-success');
-          btn.innerHTML = '<i class="ti ti-check me-1"></i> Guardado';
-          setTimeout(function(){
-            btn.classList.remove('btn-success');
-            btn.classList.add('btn-primary');
-            btn.innerHTML = '<i class="ti ti-device-floppy me-1"></i> Guardar Pólya (1–4)';
-          }, 1500);
+           // Success Animation
+           btn.classList.remove('btn-primary');
+           btn.classList.add('btn-success');
+           btn.innerHTML = '<i class="ti ti-check me-1"></i> Guardado';
+           setTimeout(function(){
+             btn.classList.remove('btn-success');
+             btn.classList.add('btn-primary');
+             btn.innerHTML = '<i class="ti ti-device-floppy me-1"></i> Guardar Avance';
+           }, 1500);
         }
       })
       .finally(function(){ btn.disabled = false; });
-    } catch(e) { if (btn) btn.disabled = false; }
+    } catch(e) { if(btn) btn.disabled = false; }
   }
 
   if (btn) btn.addEventListener('click', save);
   load();
+
 })();
 </script>

@@ -6,6 +6,8 @@ from web_project import TemplateLayout
 from apps.authentication.models import Usuarios, Rol
 from django.views.decorators.csrf import csrf_exempt
 import json
+from apps.biblioteca.models import Biblioteca_Usuario, PolyaBiblioteca
+from apps.authentication.models import Auditoria_Usuario
 
 
 class GestionUsuariosView(TemplateView):
@@ -53,7 +55,7 @@ class GestionUsuariosView(TemplateView):
         # Add data to context
         context.update({
             'usuarios': usuarios_data,
-            'roles': [{'rol_id': rol.id, 'nombre': rol.tipo} for rol in roles],
+            'roles': [{'rol_id': str(rol.id), 'nombre': rol.tipo} for rol in roles],
             'search_query': search_query,
             'selected_rol': rol_filter,
             'selected_estado': estado_filter if estado_filter is not None else ''
@@ -111,6 +113,23 @@ def eliminar_usuario(request):
 
         try:
             usuario = Usuarios.objects.get(usuario_id=user_id)
+
+            # Manual cascade deletion wrapped in try-except to handle missing tables
+            try:
+                Biblioteca_Usuario.objects.filter(usuario=usuario).delete()
+            except Exception:
+                pass
+
+            try:
+                PolyaBiblioteca.objects.filter(usuario=usuario).delete()
+            except Exception:
+                pass
+
+            try:
+                Auditoria_Usuario.objects.filter(usuario_id=usuario).delete()
+            except Exception:
+                pass
+
             usuario.delete()
             return JsonResponse({'success': True})
 
